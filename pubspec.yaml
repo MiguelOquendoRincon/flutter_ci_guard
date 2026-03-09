@@ -1,20 +1,21 @@
 name: flutter_ci_guard
 description: "A new Flutter package project."
 version: 0.0.1
-homepage:
+homepage: https://github.com/MiguelOquendoRincon/flutter_ci_guard
+repository: https://github.com/MiguelOquendoRincon/flutter_ci_guard
+issue_tracker: https://github.com/MiguelOquendoRincon/flutter_ci_guard/issues
 
 environment:
   sdk: ^3.11.0
   flutter: ">=1.17.0"
 
 dependencies:
-  flutter:
-    sdk: flutter
+  args: ^2.7.0
+  path: ^1.9.1
 
 dev_dependencies:
-  flutter_test:
-    sdk: flutter
-  flutter_lints: ^6.0.0
+  lints: ^6.1.0
+  test: ^1.30.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
