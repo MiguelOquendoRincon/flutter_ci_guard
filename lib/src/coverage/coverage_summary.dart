@@ -6,7 +6,7 @@ class CoverageSummary {
 
   double get percentage {
     if (linesFound == 0) {
-      return 0;
+      return 0.0;
     }
 
     return (linesHit / linesFound) * 100;
