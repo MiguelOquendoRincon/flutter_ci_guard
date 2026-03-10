@@ -9,7 +9,30 @@ import '../process/flutter_commands.dart';
 import 'exit_codes.dart';
 import 'result.dart';
 
+/// Orchestrates the Flutter CI quality gates in sequence.
+///
+/// [CiGuard] is the central component of `flutter_ci_guard`. It runs each
+/// enabled quality gate in order — format → analyze → tests → coverage — and
+/// stops immediately when the first gate fails (fail-fast strategy).
+///
+/// Each gate produces a [StepResult] that is accumulated in the final
+/// [GuardRunResult]. This allows callers to inspect exactly how far the
+/// execution got before a failure occurred.
+///
+/// Example:
+/// ```dart
+/// final guard = CiGuard(
+///   executor: ProcessCommandExecutor(),
+///   console: Console(),
+/// );
+/// final result = await guard.run(options);
+/// exit(result.exitCode);
+/// ```
 class CiGuard {
+  /// Creates a [CiGuard] with the provided [executor] and [console].
+  ///
+  /// If [coverageChecker] is omitted, a default [CoverageChecker] backed by
+  /// a [LcovParser] is used. Pass a custom instance to facilitate testing.
   CiGuard({
     required CommandExecutor executor,
     required Console console,
@@ -23,6 +46,19 @@ class CiGuard {
   final Console _console;
   final CoverageChecker _coverageChecker;
 
+  /// Runs all enabled quality gates and returns an aggregated [GuardRunResult].
+  ///
+  /// Gates are executed in the following order:
+  /// 1. **Format** – skipped if [CiGuardOptions.skipFormat] is `true`.
+  /// 2. **Analyze** – skipped if [CiGuardOptions.skipAnalyze] is `true`.
+  /// 3. **Tests** – skipped if [CiGuardOptions.skipTests] is `true`.
+  /// 4. **Coverage** – always evaluated using the LCOV file.
+  ///
+  /// The method returns as soon as any gate fails, without executing
+  /// subsequent gates.
+  ///
+  /// Returns a [GuardRunResult] with [GuardRunResult.success] set to `true`
+  /// only if all enabled gates pass.
   Future<GuardRunResult> run(CiGuardOptions options) async {
     final List<StepResult> completedSteps = <StepResult>[];
 
@@ -82,6 +118,11 @@ class CiGuard {
     return coverageResult;
   }
 
+  /// Reads and validates the LCOV coverage report.
+  ///
+  /// Handles [FileSystemException] (file not found) and [LcovParseException]
+  /// (malformed file) gracefully, printing a descriptive error message and
+  /// returning a failed [GuardRunResult] with the appropriate exit code.
   GuardRunResult _checkCoverage(
     CiGuardOptions options,
     List<StepResult> completedSteps,
@@ -142,6 +183,11 @@ class CiGuard {
     }
   }
 
+  /// Executes a [FlutterCommand] via the injected [CommandExecutor] and
+  /// prints progress to the [Console].
+  ///
+  /// Logs stdout/stderr output from the process and emits a pass/fail
+  /// indicator to the console.
   Future<StepResult> _runCommand(FlutterCommand command) async {
     _console.section('Running ${command.stepName}');
     _console.info('${command.executable} ${command.arguments.join(' ')}');

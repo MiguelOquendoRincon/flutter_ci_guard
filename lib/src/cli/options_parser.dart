@@ -1,9 +1,20 @@
 import 'package:args/args.dart';
+
 import 'options.dart';
 
+/// Builds the CLI argument parser and maps raw arguments to [CiGuardOptions].
+///
+/// Separating argument parsing from [runFlutterCiGuard] makes it possible to
+/// test all validation logic in isolation without spawning a full process.
 class OptionsParser {
+  /// Creates a const [OptionsParser].
   const OptionsParser();
 
+  /// Constructs and returns the [ArgParser] configured with all supported flags
+  /// and options.
+  ///
+  /// The returned parser is safe to reuse for both parsing and generating
+  /// usage text.
   ArgParser buildParser() {
     return ArgParser()
       ..addFlag(
@@ -37,6 +48,12 @@ class OptionsParser {
       );
   }
 
+  /// Parses [args] and returns a validated [CiGuardOptions].
+  ///
+  /// Throws a [FormatException] if:
+  /// - `--min-coverage` is not a valid integer.
+  /// - `--min-coverage` is outside the range `[0, 100]`.
+  /// - `--coverage-path` is empty or blank.
   CiGuardOptions parse(List<String> args) {
     final ArgParser parser = buildParser();
     final ArgResults results = parser.parse(args);
@@ -65,6 +82,9 @@ class OptionsParser {
     );
   }
 
+  /// Returns the formatted usage string for the CLI.
+  ///
+  /// The [parser] should be the instance returned by [buildParser].
   String getUsage(ArgParser parser) {
     return '''
 Run Flutter quality gates in CI/CD.
