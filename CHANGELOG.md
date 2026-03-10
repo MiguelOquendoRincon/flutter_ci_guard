@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.0.1
+## 0.0.2
 
 Initial release of `flutter_ci_guard` - a lightweight CLI tool to enforce quality gates in Flutter projects.
 
