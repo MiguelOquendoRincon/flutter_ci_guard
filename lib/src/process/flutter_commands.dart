@@ -14,7 +14,7 @@ abstract final class FlutterCommands {
   static FlutterCommand format() {
     return const FlutterCommand(
       stepName: 'format',
-      executable: 'flutter',
+      executable: 'dart',
       arguments: <String>['format', '--set-exit-if-changed', '.'],
     );
   }
