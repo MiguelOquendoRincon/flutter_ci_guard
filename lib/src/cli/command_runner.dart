@@ -1,7 +1,10 @@
 import 'package:args/args.dart';
-import 'package:flutter_ci_guard/src/cli/options.dart';
+
+import '../core/ci_guard.dart';
 import '../core/exit_codes.dart';
 import '../output/console.dart';
+import '../process/command_executor.dart';
+import 'options.dart';
 
 Future<int> runFlutterCiGuard(List<String> args) async {
   final Console console = const Console();
@@ -9,12 +12,14 @@ Future<int> runFlutterCiGuard(List<String> args) async {
 
   try {
     final ArgResults results = parser.parse(args);
+
     if (results['help'] as bool) {
-      console.info(parser.usage);
+      console.info(_usage(parser));
       return ExitCodes.success;
     }
 
     final CiGuardOptions options = _mapOptions(results);
+
     console.section('flutter_ci_guard');
     console.info('min coverage : ${options.minCoverage}%');
     console.info('coverage path: ${options.coveragePath}');
@@ -22,9 +27,13 @@ Future<int> runFlutterCiGuard(List<String> args) async {
     console.info('skip analyze : ${options.skipAnalyze}');
     console.info('skip tests   : ${options.skipTests}');
 
-    // Por ahora solo dejamos el comando principal listo.
-    // En el siguiente paso conectamos la orquestación real.
-    return ExitCodes.success;
+    final CiGuard guard = CiGuard(
+      executor: const ProcessCommandExecutor(),
+      console: console,
+    );
+
+    final result = await guard.run(options);
+    return result.exitCode;
   } on FormatException catch (error) {
     console.error('Invalid arguments: ${error.message}\n');
     console.info(_usage(parser));
