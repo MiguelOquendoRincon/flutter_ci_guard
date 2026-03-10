@@ -2,117 +2,135 @@ import 'package:flutter_ci_guard/src/coverage/lcov_parser.dart';
 import 'package:test/test.dart';
 
 void main() {
-  late LcovParser parser;
-
-  setUp(() {
-    parser = const LcovParser();
-  });
-
   group('LcovParser', () {
-    test('parses simple valid content correctly', () {
-      const content = '''
-SF:lib/src/sample.dart
+    const LcovParser parser = LcovParser();
+
+    test('parses covered and uncovered lines correctly', () {
+      const String content = '''
+TN:
+SF:lib/main.dart
 DA:1,1
 DA:2,0
-DA:3,5
+DA:3,3
 end_of_record
 ''';
+
       final summary = parser.parse(content);
 
-      expect(summary.linesFound, equals(3));
-      expect(summary.linesHit, equals(2));
-      expect(summary.percentage, closeTo(66.66, 0.01));
+      expect(summary.linesFound, 3);
+      expect(summary.linesHit, 2);
+      expect(summary.percentage, closeTo(66.67, 0.01));
     });
 
-    test('ignores non-DA lines', () {
-      const content = '''
+    test('returns zero coverage when no DA lines exist', () {
+      const String content = '''
 TN:
-SF:lib/src/sample.dart
+SF:lib/main.dart
+LF:0
+LH:0
+end_of_record
+''';
+
+      final summary = parser.parse(content);
+
+      expect(summary.linesFound, 0);
+      expect(summary.linesHit, 0);
+      expect(summary.percentage, 0);
+    });
+
+    test('ignores empty lines and unrelated lcov entries', () {
+      const String content = '''
+
+TN:
+SF:lib/main.dart
 FN:1,main
 FNDA:1,main
-DA:1,1
-DA:2,0
+BRDA:1,0,0,1
+DA:10,1
+DA:11,0
 LF:2
 LH:1
 end_of_record
+
 ''';
+
       final summary = parser.parse(content);
 
-      expect(summary.linesFound, equals(2));
-      expect(summary.linesHit, equals(1));
+      expect(summary.linesFound, 2);
+      expect(summary.linesHit, 1);
+      expect(summary.percentage, 50);
     });
 
-    test('handles 100% coverage', () {
-      const content = '''
+    test('aggregates DA lines across multiple source files', () {
+      const String content = '''
+TN:
+SF:lib/a.dart
 DA:1,1
-DA:2,10
-DA:3,1
-''';
-      final summary = parser.parse(content);
-
-      expect(summary.linesFound, equals(3));
-      expect(summary.linesHit, equals(3));
-      expect(summary.percentage, equals(100.0));
-    });
-
-    test('handles 0% coverage', () {
-      const content = '''
-DA:1,0
 DA:2,0
+end_of_record
+TN:
+SF:lib/b.dart
+DA:1,4
+DA:2,1
+DA:3,0
+end_of_record
 ''';
+
       final summary = parser.parse(content);
 
-      expect(summary.linesFound, equals(2));
-      expect(summary.linesHit, equals(0));
-      expect(summary.percentage, equals(0.0));
+      expect(summary.linesFound, 5);
+      expect(summary.linesHit, 3);
+      expect(summary.percentage, 60);
     });
 
-    test('handles empty content', () {
-      final summary = parser.parse('');
+    test('throws when DA entry has missing execution count', () {
+      const String content = '''
+SF:lib/main.dart
+DA:12
+end_of_record
+''';
 
-      expect(summary.linesFound, equals(0));
-      expect(summary.linesHit, equals(0));
-      expect(summary.percentage, equals(0.0));
+      expect(() => parser.parse(content), throwsA(isA<LcovParseException>()));
     });
 
-    test('handles content with only whitespace', () {
-      final summary = parser.parse('  \n  \n');
+    test('throws when DA entry has invalid line number', () {
+      const String content = '''
+SF:lib/main.dart
+DA:abc,1
+end_of_record
+''';
 
-      expect(summary.linesFound, equals(0));
-      expect(summary.linesHit, equals(0));
+      expect(() => parser.parse(content), throwsA(isA<LcovParseException>()));
     });
 
-    group('Error handling', () {
-      test(
-        'throws LcovParseException for invalid DA entry (missing comma)',
-        () {
-          const content = 'DA:1';
-          expect(
-            () => parser.parse(content),
-            throwsA(isA<LcovParseException>()),
-          );
-        },
-      );
+    test('throws when DA entry has invalid execution count', () {
+      const String content = '''
+SF:lib/main.dart
+DA:12,xyz
+end_of_record
+''';
 
-      test('throws LcovParseException for non-numeric line number', () {
-        const content = 'DA:abc,1';
-        expect(() => parser.parse(content), throwsA(isA<LcovParseException>()));
-      });
+      expect(() => parser.parse(content), throwsA(isA<LcovParseException>()));
+    });
 
-      test('throws LcovParseException for non-numeric execution count', () {
-        const content = 'DA:1,abc';
-        expect(() => parser.parse(content), throwsA(isA<LcovParseException>()));
-      });
+    test('throws when DA entry has negative line number', () {
+      const String content = '''
+SF:lib/main.dart
+DA:-1,1
+end_of_record
+''';
 
-      test('throws LcovParseException for negative line number', () {
-        const content = 'DA:-1,1';
-        expect(() => parser.parse(content), throwsA(isA<LcovParseException>()));
-      });
+      expect(() => parser.parse(content), throwsA(isA<LcovParseException>()));
+    });
 
-      test('throws LcovParseException for negative execution count', () {
-        const content = 'DA:1,-5';
-        expect(() => parser.parse(content), throwsA(isA<LcovParseException>()));
-      });
+    test('throws when DA entry has negative execution count', () {
+      const String content = '''
+SF:lib/main.dart
+DA:8,-1
+end_of_record
+''';
+
+      expect(() => parser.parse(content), throwsA(isA<LcovParseException>()));
     });
   });
 }
