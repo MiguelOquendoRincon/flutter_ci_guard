@@ -56,12 +56,38 @@ dart run flutter_ci_guard --min-coverage 95
 dart run flutter_ci_guard --skip-format --skip-tests --min-coverage 80
 ```
 
+### Configuration file
+
+You can store defaults in a `flutter_ci_guard.yaml` file at your project root.
+
+```yaml
+steps:
+  format: true
+  analyze: true
+  test: true
+
+coverage:
+  min: 85
+  path: coverage/lcov.info
+```
+
+`flutter_ci_guard` loads this file automatically when present. You can also point to a custom file:
+
+```bash
+dart run flutter_ci_guard --config ci/flutter_ci_guard.yaml
+```
+
+Precedence is:
+
+`CLI flags > YAML config > built-in defaults`
+
 ---
 
 ## ⚙️ Configuration Flags
 
 | Flag | Default | Description |
 |------|---------|-------------|
+| `--config` | auto-detect `flutter_ci_guard.yaml` | Path to a YAML config file. |
 | `--min-coverage` | `80` | Required percentage (0-100). |
 | `--coverage-path` | `coverage/lcov.info` | Path to the generated LCOV file. |
 | `--skip-format` | `false` | Skip `dart format` validation. |

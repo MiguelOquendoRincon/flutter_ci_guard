@@ -1,5 +1,7 @@
 import 'package:args/args.dart';
 
+import '../config/guard_config_loader.dart';
+import '../config/guard_config_merger.dart';
 import 'options.dart';
 
 /// Builds the CLI argument parser and maps raw arguments to [CiGuardOptions].
@@ -8,7 +10,16 @@ import 'options.dart';
 /// test all validation logic in isolation without spawning a full process.
 class OptionsParser {
   /// Creates a const [OptionsParser].
-  const OptionsParser();
+  const OptionsParser({
+    this.configLoader = const GuardConfigLoader(),
+    this.configMerger = const GuardConfigMerger(),
+  });
+
+  /// Loads YAML config from disk.
+  final GuardConfigLoader configLoader;
+
+  /// Merges defaults, YAML config, and explicit CLI arguments.
+  final GuardConfigMerger configMerger;
 
   /// Constructs and returns the [ArgParser] configured with all supported flags
   /// and options.
@@ -25,14 +36,19 @@ class OptionsParser {
       )
       ..addOption(
         'min-coverage',
-        defaultsTo: '80',
+        defaultsTo: '${CiGuardOptions.defaultMinCoverage}',
         help: 'Minimum required total coverage percentage.',
         valueHelp: 'int',
       )
       ..addOption(
         'coverage-path',
-        defaultsTo: 'coverage/lcov.info',
+        defaultsTo: CiGuardOptions.defaultCoveragePath,
         help: 'Path to the lcov.info file.',
+        valueHelp: 'path',
+      )
+      ..addOption(
+        'config',
+        help: 'Path to a flutter_ci_guard YAML config file.',
         valueHelp: 'path',
       )
       ..addFlag(
@@ -51,35 +67,38 @@ class OptionsParser {
   /// Parses [args] and returns a validated [CiGuardOptions].
   ///
   /// Throws a [FormatException] if:
+  /// - `--config` points to a missing or invalid YAML file.
   /// - `--min-coverage` is not a valid integer.
   /// - `--min-coverage` is outside the range `[0, 100]`.
   /// - `--coverage-path` is empty or blank.
-  CiGuardOptions parse(List<String> args) {
+  CiGuardOptions parse(List<String> args, {String? workingDirectory}) {
     final ArgParser parser = buildParser();
     final ArgResults results = parser.parse(args);
 
-    final int minCoverage =
-        int.tryParse(results['min-coverage'] as String) ??
-        (throw const FormatException(
-          '--min-coverage must be a valid integer.',
-        ));
+    if (results.wasParsed('min-coverage') &&
+        int.tryParse(results['min-coverage'] as String) == null) {
+      throw const FormatException('--min-coverage must be a valid integer.');
+    }
 
-    if (minCoverage < 0 || minCoverage > 100) {
+    final config = configLoader.load(
+      configPath: results['config'] as String?,
+      workingDirectory: workingDirectory,
+    );
+
+    final CiGuardOptions options = configMerger.merge(
+      yamlConfig: config,
+      cliResults: results,
+    );
+
+    if (options.minCoverage < 0 || options.minCoverage > 100) {
       throw const FormatException('--min-coverage must be between 0 and 100.');
     }
 
-    final String coveragePath = results['coverage-path'] as String;
-    if (coveragePath.trim().isEmpty) {
+    if (options.coveragePath.trim().isEmpty) {
       throw const FormatException('--coverage-path cannot be empty.');
     }
 
-    return CiGuardOptions(
-      minCoverage: minCoverage,
-      coveragePath: coveragePath,
-      skipFormat: results['skip-format'] as bool,
-      skipAnalyze: results['skip-analyze'] as bool,
-      skipTests: results['skip-tests'] as bool,
-    );
+    return options;
   }
 
   /// Returns the formatted usage string for the CLI.

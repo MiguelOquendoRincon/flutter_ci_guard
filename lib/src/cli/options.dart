@@ -3,6 +3,12 @@
 /// In production, instances are built by [OptionsParser.parse] from the CLI
 /// arguments. In tests, they can be constructed directly.
 class CiGuardOptions {
+  /// Default minimum acceptable coverage percentage.
+  static const int defaultMinCoverage = 80;
+
+  /// Default file system path to the LCOV report.
+  static const String defaultCoveragePath = 'coverage/lcov.info';
+
   /// Creates a [CiGuardOptions] with all required fields.
   CiGuardOptions({
     required this.minCoverage,
