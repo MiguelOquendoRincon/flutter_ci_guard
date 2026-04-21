@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.1.0
+
+Add YAML configuration file support for `flutter_ci_guard`.
+
+### Added
+- Auto-load `flutter_ci_guard.yaml` from the project root when present.
+- Support `--config <path>` to load a config file from a custom location.
+- Merge settings with precedence `CLI > YAML > defaults`.
+
+### Notes
+- Existing CLI flags remain backward compatible and continue to work as before.
+- Supported YAML keys in this release are `steps.format`, `steps.analyze`, `steps.test`, `coverage.min`, and `coverage.path`.
+
 ## 0.0.2
 
 Initial release of `flutter_ci_guard` - a lightweight CLI tool to enforce quality gates in Flutter projects.

@@ -3,7 +3,7 @@
 [![pub package](https://img.shields.io/pub/v/flutter_ci_guard.svg)](https://pub.dev/packages/flutter_ci_guard)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
-Stop technical debt before it reaches production. `flutter_ci_guard` is a lightweight, zero-dependency CLI tool designed to be the final gatekeeper in your Flutter CI/CD pipelines.
+`flutter_ci_guard` is a lightweight CLI tool for running Flutter quality gates in CI. It checks formatting, static analysis, tests, and coverage thresholds from one command, and now supports YAML-based configuration.
 
 ## 🚀 What does it solve?
 
@@ -58,7 +58,7 @@ dart run flutter_ci_guard --skip-format --skip-tests --min-coverage 80
 
 ### Configuration file
 
-You can store defaults in a `flutter_ci_guard.yaml` file at your project root.
+You can store defaults in a `flutter_ci_guard.yaml` file at your project root. The file is loaded automatically when present.
 
 ```yaml
 steps:
@@ -71,13 +71,21 @@ coverage:
   path: coverage/lcov.info
 ```
 
-`flutter_ci_guard` loads this file automatically when present. You can also point to a custom file:
+Supported keys in this release:
+
+- `steps.format`
+- `steps.analyze`
+- `steps.test`
+- `coverage.min`
+- `coverage.path`
+
+You can also point to a custom config file:
 
 ```bash
 dart run flutter_ci_guard --config ci/flutter_ci_guard.yaml
 ```
 
-Precedence is:
+CLI flags still work exactly as before. When the same setting is provided in multiple places, precedence is:
 
 `CLI flags > YAML config > built-in defaults`
 
@@ -136,7 +144,7 @@ jobs:
 
 ## 🎯 Scope & Philosophy
 
-- **Lightweight**: Minimal dependencies, fast startup.
+- **Lightweight**: Small surface area, fast startup.
 - **Fail Fast**: If formatting fails, it doesn't waste time running tests.
 - **CI-First**: Designed to be the standard way to run checks in pipelines.
 - **Pure Dart**: No need for `lcov` or `genhtml` installed on the CI machine to check the percentage.
