@@ -1,6 +1,6 @@
 name: flutter_ci_guard
 description: CI-friendly quality gates for Flutter projects. Enforce format, analyze, and test coverage thresholds with ease.
-version: 0.0.2
+version: 0.1.0
 homepage: https://github.com/MiguelOquendoRincon/flutter_ci_guard
 repository: https://github.com/MiguelOquendoRincon/flutter_ci_guard
 issue_tracker: https://github.com/MiguelOquendoRincon/flutter_ci_guard/issues
