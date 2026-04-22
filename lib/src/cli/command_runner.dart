@@ -25,6 +25,7 @@ Future<int> runFlutterCiGuard(List<String> args) async {
     console.section('flutter_ci_guard');
     console.info('min coverage : ${options.minCoverage}%');
     console.info('coverage path: ${options.coveragePath}');
+    console.info('exclude files: ${options.coverageExclude.length}');
     console.info('skip format  : ${options.skipFormat}');
     console.info('skip analyze : ${options.skipAnalyze}');
     console.info('skip tests   : ${options.skipTests}');

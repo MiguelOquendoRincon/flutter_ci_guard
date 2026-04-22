@@ -47,6 +47,11 @@ class OptionsParser {
         valueHelp: 'path',
       )
       ..addOption(
+        'coverage-exclude',
+        help: 'Comma-separated glob patterns to exclude from coverage.',
+        valueHelp: 'patterns',
+      )
+      ..addOption(
         'config',
         help: 'Path to a flutter_ci_guard YAML config file.',
         valueHelp: 'path',

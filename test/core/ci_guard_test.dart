@@ -46,6 +46,7 @@ void main() {
       final options = CiGuardOptions(
         minCoverage: 80,
         coveragePath: 'coverage/lcov.info',
+        coverageExclude: const <String>[],
         skipFormat: false,
         skipAnalyze: false,
         skipTests: false,
@@ -65,6 +66,7 @@ void main() {
         () => mockCoverageChecker.check(
           coveragePath: any(named: 'coveragePath'),
           minimumCoverage: any(named: 'minimumCoverage'),
+          excludePatterns: any(named: 'excludePatterns'),
         ),
       ).thenReturn(
         const CoverageCheckResult(
@@ -72,6 +74,8 @@ void main() {
           exitCode: 0,
           summary: CoverageSummary(linesFound: 10, linesHit: 9),
           minimumCoverage: 80,
+          excludedFilesCount: 0,
+          includedFilesCount: 1,
         ),
       );
 
@@ -90,6 +94,7 @@ void main() {
       final options = CiGuardOptions(
         minCoverage: 80,
         coveragePath: 'coverage/lcov.info',
+        coverageExclude: const <String>[],
         skipFormat: false,
         skipAnalyze: false,
         skipTests: false,
@@ -129,6 +134,7 @@ void main() {
       final options = CiGuardOptions(
         minCoverage: 80,
         coveragePath: 'coverage/lcov.info',
+        coverageExclude: const <String>[],
         skipFormat: true,
         skipAnalyze: true,
         skipTests: false,
@@ -148,6 +154,7 @@ void main() {
         () => mockCoverageChecker.check(
           coveragePath: any(named: 'coveragePath'),
           minimumCoverage: any(named: 'minimumCoverage'),
+          excludePatterns: any(named: 'excludePatterns'),
         ),
       ).thenReturn(
         const CoverageCheckResult(
@@ -155,6 +162,8 @@ void main() {
           exitCode: 0,
           summary: CoverageSummary(linesFound: 10, linesHit: 10),
           minimumCoverage: 80,
+          excludedFilesCount: 0,
+          includedFilesCount: 1,
         ),
       );
 
@@ -188,6 +197,7 @@ void main() {
         final options = CiGuardOptions(
           minCoverage: 95,
           coveragePath: 'coverage/lcov.info',
+          coverageExclude: const <String>[],
           skipFormat: true,
           skipAnalyze: true,
           skipTests: true,
@@ -197,6 +207,7 @@ void main() {
           () => mockCoverageChecker.check(
             coveragePath: any(named: 'coveragePath'),
             minimumCoverage: any(named: 'minimumCoverage'),
+            excludePatterns: any(named: 'excludePatterns'),
           ),
         ).thenReturn(
           const CoverageCheckResult(
@@ -204,6 +215,8 @@ void main() {
             exitCode: ExitCodes.coverageBelowThreshold,
             summary: CoverageSummary(linesFound: 10, linesHit: 9),
             minimumCoverage: 95,
+            excludedFilesCount: 0,
+            includedFilesCount: 1,
           ),
         );
 
@@ -220,6 +233,7 @@ void main() {
         final options = CiGuardOptions(
           minCoverage: 80,
           coveragePath: 'missing/lcov.info',
+          coverageExclude: const <String>[],
           skipFormat: true,
           skipAnalyze: true,
           skipTests: true,
@@ -229,6 +243,7 @@ void main() {
           () => mockCoverageChecker.check(
             coveragePath: any(named: 'coveragePath'),
             minimumCoverage: any(named: 'minimumCoverage'),
+            excludePatterns: any(named: 'excludePatterns'),
           ),
         ).thenThrow(const FileSystemException('File not found'));
 
@@ -245,6 +260,7 @@ void main() {
         final options = CiGuardOptions(
           minCoverage: 80,
           coveragePath: 'invalid/lcov.info',
+          coverageExclude: const <String>[],
           skipFormat: true,
           skipAnalyze: true,
           skipTests: true,
@@ -254,6 +270,7 @@ void main() {
           () => mockCoverageChecker.check(
             coveragePath: any(named: 'coveragePath'),
             minimumCoverage: any(named: 'minimumCoverage'),
+            excludePatterns: any(named: 'excludePatterns'),
           ),
         ).thenThrow(const LcovParseException('Invalid format'));
 
@@ -265,6 +282,77 @@ void main() {
           () => mockConsole.error(any(that: contains('LcovParseException'))),
         ).called(1);
       });
+
+      test('prints excluded file count when exclusions apply', () async {
+        final options = CiGuardOptions(
+          minCoverage: 80,
+          coveragePath: 'coverage/lcov.info',
+          coverageExclude: const <String>['**/*.g.dart'],
+          skipFormat: true,
+          skipAnalyze: true,
+          skipTests: true,
+        );
+
+        when(
+          () => mockCoverageChecker.check(
+            coveragePath: any(named: 'coveragePath'),
+            minimumCoverage: any(named: 'minimumCoverage'),
+            excludePatterns: any(named: 'excludePatterns'),
+          ),
+        ).thenReturn(
+          const CoverageCheckResult(
+            success: true,
+            exitCode: 0,
+            summary: CoverageSummary(linesFound: 10, linesHit: 9),
+            minimumCoverage: 80,
+            excludedFilesCount: 2,
+            includedFilesCount: 3,
+          ),
+        );
+
+        final result = await ciGuard.run(options);
+
+        expect(result.success, isTrue);
+        verify(
+          () => mockConsole.info('Excluded 2 file(s) from coverage'),
+        ).called(1);
+      });
+
+      test(
+        'handles CoverageCheckException when all files are excluded',
+        () async {
+          final options = CiGuardOptions(
+            minCoverage: 80,
+            coveragePath: 'coverage/lcov.info',
+            coverageExclude: const <String>['**/*.g.dart'],
+            skipFormat: true,
+            skipAnalyze: true,
+            skipTests: true,
+          );
+
+          when(
+            () => mockCoverageChecker.check(
+              coveragePath: any(named: 'coveragePath'),
+              minimumCoverage: any(named: 'minimumCoverage'),
+              excludePatterns: any(named: 'excludePatterns'),
+            ),
+          ).thenThrow(
+            const CoverageCheckException(
+              'All coverage files were excluded from calculation.',
+            ),
+          );
+
+          final result = await ciGuard.run(options);
+
+          expect(result.success, isFalse);
+          expect(result.exitCode, equals(ExitCodes.coverageParseError));
+          verify(
+            () => mockConsole.error(
+              any(that: contains('CoverageCheckException')),
+            ),
+          ).called(1);
+        },
+      );
     });
   });
 }

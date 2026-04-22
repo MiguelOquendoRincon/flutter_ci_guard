@@ -1,8 +1,25 @@
 import 'dart:io';
 
 import '../core/exit_codes.dart';
+import 'coverage_aggregator.dart';
+import 'coverage_excluder.dart';
+import 'file_coverage_record.dart';
 import 'coverage_summary.dart';
 import 'lcov_parser.dart';
+
+/// Exception thrown when coverage cannot be evaluated after exclusions.
+class CoverageCheckException implements Exception {
+  /// Creates a [CoverageCheckException].
+  const CoverageCheckException(this.message);
+
+  /// A human-readable description of the error.
+  final String message;
+
+  @override
+  String toString() {
+    return 'CoverageCheckException: $message';
+  }
+}
 
 /// The result of a coverage check against a minimum threshold.
 ///
@@ -14,6 +31,8 @@ class CoverageCheckResult {
     required this.exitCode,
     required this.summary,
     required this.minimumCoverage,
+    required this.excludedFilesCount,
+    required this.includedFilesCount,
   });
 
   /// Whether the actual coverage met or exceeded [minimumCoverage].
@@ -30,6 +49,12 @@ class CoverageCheckResult {
 
   /// The minimum coverage percentage that was required.
   final int minimumCoverage;
+
+  /// Number of files excluded before coverage aggregation.
+  final int excludedFilesCount;
+
+  /// Number of files included in the final coverage calculation.
+  final int includedFilesCount;
 }
 
 /// Reads an LCOV file and checks whether coverage meets a minimum threshold.
@@ -51,9 +76,17 @@ class CoverageCheckResult {
 /// ```
 class CoverageChecker {
   /// Creates a [CoverageChecker] using the provided [parser].
-  CoverageChecker({required LcovParser parser}) : _parser = parser;
+  CoverageChecker({
+    required LcovParser parser,
+    CoverageExcluder excluder = const CoverageExcluder(),
+    CoverageAggregator aggregator = const CoverageAggregator(),
+  }) : _parser = parser,
+       _excluder = excluder,
+       _aggregator = aggregator;
 
   final LcovParser _parser;
+  final CoverageExcluder _excluder;
+  final CoverageAggregator _aggregator;
 
   /// Reads the LCOV file at [coveragePath] and evaluates the coverage
   /// against [minimumCoverage].
@@ -68,6 +101,7 @@ class CoverageChecker {
   CoverageCheckResult check({
     required String coveragePath,
     required int minimumCoverage,
+    List<String> excludePatterns = const <String>[],
   }) {
     final File file = File(coveragePath);
 
@@ -76,7 +110,21 @@ class CoverageChecker {
     }
 
     final String content = file.readAsStringSync();
-    final CoverageSummary summary = _parser.parse(content);
+    final List<FileCoverageRecord> records = _parser.parseRecords(content);
+    final List<FileCoverageRecord> includedRecords = records
+        .where(
+          (FileCoverageRecord record) =>
+              !_excluder.isExcluded(record.path, excludePatterns),
+        )
+        .toList(growable: false);
+
+    if (records.isNotEmpty && includedRecords.isEmpty) {
+      throw const CoverageCheckException(
+        'All coverage files were excluded from calculation.',
+      );
+    }
+
+    final CoverageSummary summary = _aggregator.aggregate(includedRecords);
 
     final bool passed = summary.percentage >= minimumCoverage;
 
@@ -85,6 +133,8 @@ class CoverageChecker {
       exitCode: passed ? ExitCodes.success : ExitCodes.coverageBelowThreshold,
       summary: summary,
       minimumCoverage: minimumCoverage,
+      excludedFilesCount: records.length - includedRecords.length,
+      includedFilesCount: includedRecords.length,
     );
   }
 }

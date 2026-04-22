@@ -22,6 +22,11 @@ class GuardConfigMerger {
         ? cliResults['coverage-path'] as String
         : (yamlConfig.coveragePath ?? CiGuardOptions.defaultCoveragePath);
 
+    final List<String> coverageExclude =
+        cliResults.wasParsed('coverage-exclude')
+        ? _parseCoverageExclude(cliResults['coverage-exclude'] as String)
+        : (yamlConfig.coverageExclude ?? const <String>[]);
+
     final bool skipFormat = cliResults.wasParsed('skip-format')
         ? cliResults['skip-format'] as bool
         : !(yamlConfig.formatStepEnabled ?? true);
@@ -37,9 +42,18 @@ class GuardConfigMerger {
     return CiGuardOptions(
       minCoverage: minCoverage,
       coveragePath: coveragePath,
+      coverageExclude: coverageExclude,
       skipFormat: skipFormat,
       skipAnalyze: skipAnalyze,
       skipTests: skipTests,
     );
+  }
+
+  List<String> _parseCoverageExclude(String rawValue) {
+    return rawValue
+        .split(',')
+        .map((String pattern) => pattern.trim())
+        .where((String pattern) => pattern.isNotEmpty)
+        .toList(growable: false);
   }
 }
