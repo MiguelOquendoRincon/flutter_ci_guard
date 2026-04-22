@@ -69,6 +69,10 @@ steps:
 coverage:
   min: 85
   path: coverage/lcov.info
+  exclude:
+    - "**/*.g.dart"
+    - "**/*.freezed.dart"
+    - "**/generated/**"
 ```
 
 Supported keys in this release:
@@ -78,6 +82,7 @@ Supported keys in this release:
 - `steps.test`
 - `coverage.min`
 - `coverage.path`
+- `coverage.exclude`
 
 You can also point to a custom config file:
 
@@ -89,6 +94,42 @@ CLI flags still work exactly as before. When the same setting is provided in mul
 
 `CLI flags > YAML config > built-in defaults`
 
+### Coverage exclusions
+
+Generated files can distort the global LCOV percentage and make the reported
+coverage less representative of the source files you actually maintain.
+`flutter_ci_guard` now supports optional glob-style exclusions so those files
+can be removed before the global coverage total is computed.
+
+```yaml
+coverage:
+  min: 85
+  path: coverage/lcov.info
+  exclude:
+    - "**/*.g.dart"
+    - "**/*.freezed.dart"
+    - "**/generated/**"
+```
+
+Exclusions are applied per LCOV file record before global aggregation. This is
+useful for generated code and other paths you do not want counted in the final
+percentage.
+
+Supported glob-style patterns include examples such as:
+
+- `**/*.g.dart`
+- `**/*.freezed.dart`
+- `**/generated/**`
+
+If you prefer to pass exclusions from the command line, use:
+
+```bash
+dart run flutter_ci_guard --coverage-exclude "**/*.g.dart,**/*.freezed.dart"
+```
+
+When no exclusions are configured, coverage behavior remains unchanged from
+previous versions.
+
 ---
 
 ## ⚙️ Configuration Flags
@@ -98,6 +139,7 @@ CLI flags still work exactly as before. When the same setting is provided in mul
 | `--config` | auto-detect `flutter_ci_guard.yaml` | Path to a YAML config file. |
 | `--min-coverage` | `80` | Required percentage (0-100). |
 | `--coverage-path` | `coverage/lcov.info` | Path to the generated LCOV file. |
+| `--coverage-exclude` | - | Comma-separated glob patterns to exclude from coverage. |
 | `--skip-format` | `false` | Skip `dart format` validation. |
 | `--skip-analyze` | `false` | Skip `flutter analyze`. |
 | `--skip-tests` | `false` | Skip `flutter test --coverage`. |

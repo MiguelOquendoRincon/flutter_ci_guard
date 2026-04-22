@@ -130,12 +130,24 @@ class CiGuard {
     _console.section('Checking coverage');
     _console.info('Reading coverage from ${options.coveragePath}');
     _console.info('Minimum required coverage: ${options.minCoverage}%');
+    if (options.coverageExclude.isNotEmpty) {
+      _console.info(
+        'Coverage exclusions: ${options.coverageExclude.join(', ')}',
+      );
+    }
 
     try {
       final CoverageCheckResult result = _coverageChecker.check(
         coveragePath: options.coveragePath,
         minimumCoverage: options.minCoverage,
+        excludePatterns: options.coverageExclude,
       );
+
+      if (result.excludedFilesCount > 0) {
+        _console.info(
+          'Excluded ${result.excludedFilesCount} file(s) from coverage',
+        );
+      }
 
       final String formattedCoverage = result.summary.percentage
           .toStringAsFixed(2);
@@ -170,6 +182,14 @@ class CiGuard {
       return GuardRunResult(
         success: false,
         exitCode: ExitCodes.coverageFileNotFound,
+        completedSteps: completedSteps,
+      );
+    } on CoverageCheckException catch (error) {
+      _console.error(error.toString());
+
+      return GuardRunResult(
+        success: false,
+        exitCode: ExitCodes.coverageParseError,
         completedSteps: completedSteps,
       );
     } on LcovParseException catch (error) {

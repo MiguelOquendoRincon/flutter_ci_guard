@@ -13,6 +13,7 @@ class CiGuardOptions {
   CiGuardOptions({
     required this.minCoverage,
     required this.coveragePath,
+    required this.coverageExclude,
     required this.skipFormat,
     required this.skipAnalyze,
     required this.skipTests,
@@ -25,6 +26,9 @@ class CiGuardOptions {
   ///
   /// Defaults to `'coverage/lcov.info'` when parsed from the CLI.
   final String coveragePath;
+
+  /// Glob patterns for files excluded from coverage calculation.
+  final List<String> coverageExclude;
 
   /// When `true`, the format quality gate is skipped entirely.
   final bool skipFormat;

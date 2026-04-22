@@ -10,6 +10,7 @@ class GuardConfig {
     this.testStepEnabled,
     this.minCoverage,
     this.coveragePath,
+    this.coverageExclude,
   });
 
   /// Whether the format step should run.
@@ -26,4 +27,7 @@ class GuardConfig {
 
   /// Path to the LCOV report.
   final String? coveragePath;
+
+  /// Glob patterns for files excluded from coverage calculation.
+  final List<String>? coverageExclude;
 }

@@ -1,4 +1,6 @@
+import 'coverage_aggregator.dart';
 import 'coverage_summary.dart';
+import 'file_coverage_record.dart';
 
 /// Exception thrown when the LCOV file content cannot be parsed.
 ///
@@ -20,8 +22,8 @@ class LcovParseException implements Exception {
 /// Parses the content of an LCOV coverage report file.
 ///
 /// LCOV is the standard format produced by `flutter test --coverage`.
-/// This parser reads only the `DA:` (data line) entries, which describe
-/// individual line coverage, and aggregates them into a [CoverageSummary].
+/// This parser reads file-level `SF:` records and `DA:` (data line) entries,
+/// then aggregates them into a [CoverageSummary].
 ///
 /// Other entries such as `SF:`, `FN:`, `FNDA:`, `BRDA:`, `LF:`, `LH:`,
 /// and `end_of_record` are intentionally ignored.
@@ -36,6 +38,8 @@ class LcovParser {
   /// Creates a const [LcovParser].
   const LcovParser();
 
+  static const CoverageAggregator _aggregator = CoverageAggregator();
+
   /// Parses the raw LCOV [content] and returns a [CoverageSummary].
   ///
   /// Iterates over all `DA:<lineNumber>,<executionCount>` entries in the
@@ -49,15 +53,57 @@ class LcovParser {
   /// Throws a [LcovParseException] if any `DA:` entry is malformed,
   /// contains a non-integer value, or has a negative number.
   CoverageSummary parse(String content) {
-    final List<String> lines = content.split('\n');
+    return _aggregator.aggregate(parseRecords(content));
+  }
 
+  /// Parses the raw LCOV [content] and returns per-file coverage records.
+  ///
+  /// Each `SF:` entry starts a new file record. `DA:` entries are accumulated
+  /// until `end_of_record` is reached.
+  List<FileCoverageRecord> parseRecords(String content) {
+    final List<String> lines = content.split('\n');
+    final List<FileCoverageRecord> records = <FileCoverageRecord>[];
+
+    String? currentPath;
     int linesFound = 0;
     int linesHit = 0;
 
     for (final String rawLine in lines) {
       final String line = rawLine.trim();
 
-      if (line.isEmpty || !line.startsWith('DA:')) {
+      if (line.isEmpty) {
+        continue;
+      }
+
+      if (line.startsWith('SF:')) {
+        _finalizeRecord(
+          records: records,
+          currentPath: currentPath,
+          linesFound: linesFound,
+          linesHit: linesHit,
+        );
+
+        currentPath = line.substring(3).trim();
+        linesFound = 0;
+        linesHit = 0;
+        continue;
+      }
+
+      if (line == 'end_of_record') {
+        _finalizeRecord(
+          records: records,
+          currentPath: currentPath,
+          linesFound: linesFound,
+          linesHit: linesHit,
+        );
+
+        currentPath = null;
+        linesFound = 0;
+        linesHit = 0;
+        continue;
+      }
+
+      if (!line.startsWith('DA:')) {
         continue;
       }
 
@@ -69,7 +115,14 @@ class LcovParser {
       }
     }
 
-    return CoverageSummary(linesFound: linesFound, linesHit: linesHit);
+    _finalizeRecord(
+      records: records,
+      currentPath: currentPath,
+      linesFound: linesFound,
+      linesHit: linesHit,
+    );
+
+    return records;
   }
 
   /// Parses a single `DA:<lineNumber>,<executionCount>` entry.
@@ -100,6 +153,25 @@ class LcovParser {
     return _LineCoverageEntry(
       lineNumber: lineNumber,
       executionCount: executionCount,
+    );
+  }
+
+  void _finalizeRecord({
+    required List<FileCoverageRecord> records,
+    required String? currentPath,
+    required int linesFound,
+    required int linesHit,
+  }) {
+    if (currentPath == null) {
+      return;
+    }
+
+    records.add(
+      FileCoverageRecord(
+        path: currentPath,
+        linesFound: linesFound,
+        linesHit: linesHit,
+      ),
     );
   }
 }
