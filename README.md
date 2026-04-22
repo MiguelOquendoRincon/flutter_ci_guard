@@ -167,6 +167,25 @@ jobs:
         run: dart run flutter_ci_guard --min-coverage 90
 ```
 
+### Publishing releases
+
+This package is intended to publish to pub.dev from GitHub Actions only when a
+version tag is pushed. Pushes and pull requests on `main` run validation only
+and do not publish.
+
+Before using automated publishing, configure pub.dev trusted publishing in the
+package Admin settings for this repository and use the tag pattern
+`v{{version}}`.
+
+Example release flow:
+
+```bash
+git tag v0.2.0
+git push origin v0.2.0
+```
+
+The version in `pubspec.yaml` must match the tag version exactly.
+
 ---
 
 ## 🚪 Exit Behavior

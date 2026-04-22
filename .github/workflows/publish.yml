@@ -1,15 +1,49 @@
 name: Publish to pub.dev
 
 on:
-    push:
-        tags:
-            - "v[0-9]+.[0-9]+.[0-9]+"
+  push:
+    tags:
+      - 'v*'
 
 jobs:
-    publish:
-        permissions:
-            id-token: write
+  publish:
+    name: Publish Package
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    environment: pub.dev
 
-        uses: dart-lang/setup-dart/.github/workflows/publish.yml@v1
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Dart SDK
+        uses: dart-lang/setup-dart@v1
         with:
-            environment: pub.dev
+          sdk: stable
+
+      - name: Verify tag matches pubspec version
+        run: |
+          pubspec_version=$(grep '^version:' pubspec.yaml | awk '{print $2}')
+          tag_version="${GITHUB_REF_NAME#v}"
+
+          if [ "$tag_version" != "$pubspec_version" ]; then
+            echo "Tag version v$tag_version does not match pubspec.yaml version $pubspec_version."
+            exit 1
+          fi
+
+      - name: Install dependencies
+        run: dart pub get
+
+      - name: Analyze
+        run: dart analyze
+
+      - name: Run tests
+        run: dart test
+
+      - name: Validate publishability
+        run: dart pub publish --dry-run
+
+      - name: Publish to pub.dev
+        run: dart pub publish --force
