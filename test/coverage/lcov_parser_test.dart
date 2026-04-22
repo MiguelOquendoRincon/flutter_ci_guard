@@ -83,6 +83,29 @@ end_of_record
       expect(summary.percentage, 60);
     });
 
+    test('builds file-level records from LCOV content', () {
+      const String content = '''
+TN:
+SF:lib/a.dart
+DA:1,1
+DA:2,0
+end_of_record
+SF:lib/generated/file.g.dart
+DA:1,1
+end_of_record
+''';
+
+      final records = parser.parseRecords(content);
+
+      expect(records, hasLength(2));
+      expect(records[0].path, equals('lib/a.dart'));
+      expect(records[0].linesFound, equals(2));
+      expect(records[0].linesHit, equals(1));
+      expect(records[1].path, equals('lib/generated/file.g.dart'));
+      expect(records[1].linesFound, equals(1));
+      expect(records[1].linesHit, equals(1));
+    });
+
     test('throws when DA entry has missing execution count', () {
       const String content = '''
 SF:lib/main.dart

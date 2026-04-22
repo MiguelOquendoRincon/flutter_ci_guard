@@ -69,12 +69,31 @@ class GuardConfigValidator {
       );
     }
 
+    final dynamic coverageExclude = rawCoverage?['exclude'];
+    if (coverageExclude != null && coverageExclude is! List) {
+      throw const FormatException(
+        'Config key "coverage.exclude" must be a list of strings.',
+      );
+    }
+
+    if (coverageExclude != null &&
+        coverageExclude.any((dynamic item) => item is! String)) {
+      throw const FormatException(
+        'Config key "coverage.exclude" must be a list of strings.',
+      );
+    }
+
     return GuardConfig(
       formatStepEnabled: format as bool?,
       analyzeStepEnabled: analyze as bool?,
       testStepEnabled: test as bool?,
       minCoverage: minCoverage as int?,
       coveragePath: coveragePath as String?,
+      coverageExclude: (coverageExclude as List<dynamic>?)
+          ?.cast<String>()
+          .map((String pattern) => pattern.trim())
+          .where((String pattern) => pattern.isNotEmpty)
+          .toList(growable: false),
     );
   }
 }
