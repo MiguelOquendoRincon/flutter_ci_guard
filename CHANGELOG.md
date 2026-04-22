@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.1.1
+## 0.2.0
 
 Add coverage exclusion support for `flutter_ci_guard`.
 

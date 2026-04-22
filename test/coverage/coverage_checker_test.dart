@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:flutter_ci_guard/src/core/exit_codes.dart';
 import 'package:flutter_ci_guard/src/coverage/coverage_checker.dart';
 import 'package:flutter_ci_guard/src/coverage/file_coverage_record.dart';
-import 'package:flutter_ci_guard/src/coverage/coverage_summary.dart';
 import 'package:flutter_ci_guard/src/coverage/lcov_parser.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:test/test.dart';

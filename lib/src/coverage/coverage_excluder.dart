@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:path/path.dart' as p;
 
 /// Applies glob-based coverage exclusions to file paths.
