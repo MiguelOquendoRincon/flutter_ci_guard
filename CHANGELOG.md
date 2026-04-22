@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.1.1
+
+Add coverage exclusion support for `flutter_ci_guard`.
+
+### Added
+- Support `coverage.exclude` in `flutter_ci_guard.yaml` using glob-style patterns such as `**/*.g.dart` and `**/generated/**`.
+- Support `--coverage-exclude` for passing comma-separated exclusion patterns from the CLI.
+
+### Changed
+- Parse LCOV coverage by file record internally before computing the global coverage summary.
+- Filter excluded files before aggregation so generated files do not affect the final percentage.
+
+### Notes
+- When no exclusions are configured, coverage behavior remains backward compatible with previous releases.
+
 ## 0.1.0
 
 Add YAML configuration file support for `flutter_ci_guard`.
