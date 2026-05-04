@@ -5,6 +5,7 @@ import 'package:flutter_ci_guard/src/core/ci_guard.dart';
 import 'package:flutter_ci_guard/src/core/exit_codes.dart';
 import 'package:flutter_ci_guard/src/core/result.dart';
 import 'package:flutter_ci_guard/src/coverage/coverage_checker.dart';
+import 'package:flutter_ci_guard/src/coverage/file_coverage_record.dart';
 import 'package:flutter_ci_guard/src/coverage/coverage_summary.dart';
 import 'package:flutter_ci_guard/src/coverage/lcov_parser.dart';
 import 'package:flutter_ci_guard/src/output/console.dart';
@@ -47,6 +48,8 @@ void main() {
         minCoverage: 80,
         coveragePath: 'coverage/lcov.info',
         coverageExclude: const <String>[],
+        perFileMinCoverage: null,
+        showTopLowFiles: null,
         skipFormat: false,
         skipAnalyze: false,
         skipTests: false,
@@ -67,6 +70,8 @@ void main() {
           coveragePath: any(named: 'coveragePath'),
           minimumCoverage: any(named: 'minimumCoverage'),
           excludePatterns: any(named: 'excludePatterns'),
+          perFileMinCoverage: any(named: 'perFileMinCoverage'),
+          showTopLowFiles: any(named: 'showTopLowFiles'),
         ),
       ).thenReturn(
         const CoverageCheckResult(
@@ -76,6 +81,7 @@ void main() {
           minimumCoverage: 80,
           excludedFilesCount: 0,
           includedFilesCount: 1,
+          lowCoverageFiles: <FileCoverageRecord>[],
         ),
       );
 
@@ -95,6 +101,8 @@ void main() {
         minCoverage: 80,
         coveragePath: 'coverage/lcov.info',
         coverageExclude: const <String>[],
+        perFileMinCoverage: null,
+        showTopLowFiles: null,
         skipFormat: false,
         skipAnalyze: false,
         skipTests: false,
@@ -135,6 +143,8 @@ void main() {
         minCoverage: 80,
         coveragePath: 'coverage/lcov.info',
         coverageExclude: const <String>[],
+        perFileMinCoverage: null,
+        showTopLowFiles: null,
         skipFormat: true,
         skipAnalyze: true,
         skipTests: false,
@@ -155,6 +165,8 @@ void main() {
           coveragePath: any(named: 'coveragePath'),
           minimumCoverage: any(named: 'minimumCoverage'),
           excludePatterns: any(named: 'excludePatterns'),
+          perFileMinCoverage: any(named: 'perFileMinCoverage'),
+          showTopLowFiles: any(named: 'showTopLowFiles'),
         ),
       ).thenReturn(
         const CoverageCheckResult(
@@ -164,6 +176,7 @@ void main() {
           minimumCoverage: 80,
           excludedFilesCount: 0,
           includedFilesCount: 1,
+          lowCoverageFiles: <FileCoverageRecord>[],
         ),
       );
 
@@ -198,6 +211,8 @@ void main() {
           minCoverage: 95,
           coveragePath: 'coverage/lcov.info',
           coverageExclude: const <String>[],
+          perFileMinCoverage: null,
+          showTopLowFiles: null,
           skipFormat: true,
           skipAnalyze: true,
           skipTests: true,
@@ -208,6 +223,8 @@ void main() {
             coveragePath: any(named: 'coveragePath'),
             minimumCoverage: any(named: 'minimumCoverage'),
             excludePatterns: any(named: 'excludePatterns'),
+            perFileMinCoverage: any(named: 'perFileMinCoverage'),
+            showTopLowFiles: any(named: 'showTopLowFiles'),
           ),
         ).thenReturn(
           const CoverageCheckResult(
@@ -217,6 +234,7 @@ void main() {
             minimumCoverage: 95,
             excludedFilesCount: 0,
             includedFilesCount: 1,
+            lowCoverageFiles: <FileCoverageRecord>[],
           ),
         );
 
@@ -234,6 +252,8 @@ void main() {
           minCoverage: 80,
           coveragePath: 'missing/lcov.info',
           coverageExclude: const <String>[],
+          perFileMinCoverage: null,
+          showTopLowFiles: null,
           skipFormat: true,
           skipAnalyze: true,
           skipTests: true,
@@ -244,6 +264,8 @@ void main() {
             coveragePath: any(named: 'coveragePath'),
             minimumCoverage: any(named: 'minimumCoverage'),
             excludePatterns: any(named: 'excludePatterns'),
+            perFileMinCoverage: any(named: 'perFileMinCoverage'),
+            showTopLowFiles: any(named: 'showTopLowFiles'),
           ),
         ).thenThrow(const FileSystemException('File not found'));
 
@@ -261,6 +283,8 @@ void main() {
           minCoverage: 80,
           coveragePath: 'invalid/lcov.info',
           coverageExclude: const <String>[],
+          perFileMinCoverage: null,
+          showTopLowFiles: null,
           skipFormat: true,
           skipAnalyze: true,
           skipTests: true,
@@ -271,6 +295,8 @@ void main() {
             coveragePath: any(named: 'coveragePath'),
             minimumCoverage: any(named: 'minimumCoverage'),
             excludePatterns: any(named: 'excludePatterns'),
+            perFileMinCoverage: any(named: 'perFileMinCoverage'),
+            showTopLowFiles: any(named: 'showTopLowFiles'),
           ),
         ).thenThrow(const LcovParseException('Invalid format'));
 
@@ -288,6 +314,8 @@ void main() {
           minCoverage: 80,
           coveragePath: 'coverage/lcov.info',
           coverageExclude: const <String>['**/*.g.dart'],
+          perFileMinCoverage: null,
+          showTopLowFiles: null,
           skipFormat: true,
           skipAnalyze: true,
           skipTests: true,
@@ -298,6 +326,8 @@ void main() {
             coveragePath: any(named: 'coveragePath'),
             minimumCoverage: any(named: 'minimumCoverage'),
             excludePatterns: any(named: 'excludePatterns'),
+            perFileMinCoverage: any(named: 'perFileMinCoverage'),
+            showTopLowFiles: any(named: 'showTopLowFiles'),
           ),
         ).thenReturn(
           const CoverageCheckResult(
@@ -307,6 +337,7 @@ void main() {
             minimumCoverage: 80,
             excludedFilesCount: 2,
             includedFilesCount: 3,
+            lowCoverageFiles: <FileCoverageRecord>[],
           ),
         );
 
@@ -325,6 +356,8 @@ void main() {
             minCoverage: 80,
             coveragePath: 'coverage/lcov.info',
             coverageExclude: const <String>['**/*.g.dart'],
+            perFileMinCoverage: null,
+            showTopLowFiles: null,
             skipFormat: true,
             skipAnalyze: true,
             skipTests: true,
@@ -335,6 +368,8 @@ void main() {
               coveragePath: any(named: 'coveragePath'),
               minimumCoverage: any(named: 'minimumCoverage'),
               excludePatterns: any(named: 'excludePatterns'),
+              perFileMinCoverage: any(named: 'perFileMinCoverage'),
+              showTopLowFiles: any(named: 'showTopLowFiles'),
             ),
           ).thenThrow(
             const CoverageCheckException(
@@ -353,6 +388,61 @@ void main() {
           ).called(1);
         },
       );
+
+      test('prints low-coverage file summary when configured', () async {
+        final options = CiGuardOptions(
+          minCoverage: 80,
+          coveragePath: 'coverage/lcov.info',
+          coverageExclude: const <String>[],
+          perFileMinCoverage: 70,
+          showTopLowFiles: 2,
+          skipFormat: true,
+          skipAnalyze: true,
+          skipTests: true,
+        );
+
+        when(
+          () => mockCoverageChecker.check(
+            coveragePath: any(named: 'coveragePath'),
+            minimumCoverage: any(named: 'minimumCoverage'),
+            excludePatterns: any(named: 'excludePatterns'),
+            perFileMinCoverage: any(named: 'perFileMinCoverage'),
+            showTopLowFiles: any(named: 'showTopLowFiles'),
+          ),
+        ).thenReturn(
+          const CoverageCheckResult(
+            success: true,
+            exitCode: 0,
+            summary: CoverageSummary(linesFound: 10, linesHit: 9),
+            minimumCoverage: 80,
+            excludedFilesCount: 0,
+            includedFilesCount: 2,
+            lowCoverageFiles: <FileCoverageRecord>[
+              FileCoverageRecord(
+                path: 'lib/auth/login_cubit.dart',
+                linesFound: 100,
+                linesHit: 54,
+              ),
+              FileCoverageRecord(
+                path: 'lib/cart/add_item.dart',
+                linesFound: 100,
+                linesHit: 61,
+              ),
+            ],
+          ),
+        );
+
+        final result = await ciGuard.run(options);
+
+        expect(result.success, isTrue);
+        verify(() => mockConsole.info('\nLow coverage files:\n')).called(1);
+        verify(
+          () => mockConsole.info('lib/auth/login_cubit.dart -> 54.00%'),
+        ).called(1);
+        verify(
+          () => mockConsole.info('lib/cart/add_item.dart -> 61.00%'),
+        ).called(1);
+      });
     });
   });
 }

@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.3.0
+
+Add per-file coverage insights for `flutter_ci_guard`.
+
+### Added
+- Support `coverage.per_file_min` to flag files below a per-file coverage threshold.
+- Support `coverage.show_top_low_files` to limit per-file output to the lowest N files.
+- Print a low-coverage file summary after the global coverage result when per-file reporting is configured.
+
+### Changed
+- Apply existing coverage exclusions before computing both global coverage and per-file insights.
+
+### Notes
+- When per-file reporting is not configured, console output remains backward compatible with previous releases.
+
 ## 0.2.0
 
 Add coverage exclusion support for `flutter_ci_guard`.

@@ -27,6 +27,9 @@ class GuardConfigMerger {
         ? _parseCoverageExclude(cliResults['coverage-exclude'] as String)
         : (yamlConfig.coverageExclude ?? const <String>[]);
 
+    final int? perFileMinCoverage = yamlConfig.perFileMinCoverage;
+    final int? showTopLowFiles = yamlConfig.showTopLowFiles;
+
     final bool skipFormat = cliResults.wasParsed('skip-format')
         ? cliResults['skip-format'] as bool
         : !(yamlConfig.formatStepEnabled ?? true);
@@ -43,6 +46,8 @@ class GuardConfigMerger {
       minCoverage: minCoverage,
       coveragePath: coveragePath,
       coverageExclude: coverageExclude,
+      perFileMinCoverage: perFileMinCoverage,
+      showTopLowFiles: showTopLowFiles,
       skipFormat: skipFormat,
       skipAnalyze: skipAnalyze,
       skipTests: skipTests,

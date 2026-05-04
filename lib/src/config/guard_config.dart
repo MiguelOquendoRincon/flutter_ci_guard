@@ -11,6 +11,8 @@ class GuardConfig {
     this.minCoverage,
     this.coveragePath,
     this.coverageExclude,
+    this.perFileMinCoverage,
+    this.showTopLowFiles,
   });
 
   /// Whether the format step should run.
@@ -30,4 +32,10 @@ class GuardConfig {
 
   /// Glob patterns for files excluded from coverage calculation.
   final List<String>? coverageExclude;
+
+  /// Minimum acceptable per-file coverage percentage.
+  final int? perFileMinCoverage;
+
+  /// Maximum number of low-coverage files to show.
+  final int? showTopLowFiles;
 }

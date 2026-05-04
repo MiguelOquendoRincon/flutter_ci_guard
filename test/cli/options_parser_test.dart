@@ -24,6 +24,8 @@ void main() {
       expect(options.minCoverage, equals(80));
       expect(options.coveragePath, equals('coverage/lcov.info'));
       expect(options.coverageExclude, isEmpty);
+      expect(options.perFileMinCoverage, isNull);
+      expect(options.showTopLowFiles, isNull);
       expect(options.skipFormat, isFalse);
       expect(options.skipAnalyze, isFalse);
       expect(options.skipTests, isFalse);
@@ -47,6 +49,8 @@ void main() {
         options.coverageExclude,
         equals(const <String>['**/*.g.dart', '**/*.freezed.dart']),
       );
+      expect(options.perFileMinCoverage, isNull);
+      expect(options.showTopLowFiles, isNull);
       expect(options.skipFormat, isTrue);
       expect(options.skipAnalyze, isTrue);
       expect(options.skipTests, isTrue);
@@ -91,6 +95,8 @@ coverage:
   exclude:
     - "**/*.g.dart"
     - "**/generated/**"
+  per_file_min: 70
+  show_top_low_files: 5
 ''');
 
       final options = parser.parse([], workingDirectory: tempDir.path);
@@ -101,6 +107,8 @@ coverage:
         options.coverageExclude,
         equals(const <String>['**/*.g.dart', '**/generated/**']),
       );
+      expect(options.perFileMinCoverage, equals(70));
+      expect(options.showTopLowFiles, equals(5));
       expect(options.skipFormat, isTrue);
       expect(options.skipAnalyze, isFalse);
       expect(options.skipTests, isTrue);
@@ -117,6 +125,8 @@ coverage:
 
       expect(options.minCoverage, equals(92));
       expect(options.coveragePath, equals(CiGuardOptions.defaultCoveragePath));
+      expect(options.perFileMinCoverage, isNull);
+      expect(options.showTopLowFiles, isNull);
       expect(options.skipFormat, isFalse);
       expect(options.skipAnalyze, isFalse);
       expect(options.skipTests, isFalse);
@@ -153,6 +163,8 @@ coverage:
         options.coverageExclude,
         equals(const <String>['**/*.freezed.dart']),
       );
+      expect(options.perFileMinCoverage, isNull);
+      expect(options.showTopLowFiles, isNull);
       expect(options.skipFormat, isTrue);
       expect(options.skipAnalyze, isTrue);
       expect(options.skipTests, isTrue);
@@ -169,6 +181,8 @@ coverage:
 
       expect(options.minCoverage, equals(88));
       expect(options.coveragePath, equals(CiGuardOptions.defaultCoveragePath));
+      expect(options.perFileMinCoverage, isNull);
+      expect(options.showTopLowFiles, isNull);
     });
 
     test('throws FormatException for missing explicit config file', () {
@@ -233,6 +247,44 @@ coverage:
             (error) => error.message,
             'message',
             contains('coverage.exclude'),
+          ),
+        ),
+      );
+    });
+
+    test('throws FormatException for invalid coverage.per_file_min', () {
+      final configFile = File('${tempDir.path}/flutter_ci_guard.yaml');
+      configFile.writeAsStringSync('''
+coverage:
+  per_file_min: 101
+''');
+
+      expect(
+        () => parser.parse([], workingDirectory: tempDir.path),
+        throwsA(
+          isA<FormatException>().having(
+            (error) => error.message,
+            'message',
+            contains('coverage.per_file_min'),
+          ),
+        ),
+      );
+    });
+
+    test('throws FormatException for invalid coverage.show_top_low_files', () {
+      final configFile = File('${tempDir.path}/flutter_ci_guard.yaml');
+      configFile.writeAsStringSync('''
+coverage:
+  show_top_low_files: 0
+''');
+
+      expect(
+        () => parser.parse([], workingDirectory: tempDir.path),
+        throwsA(
+          isA<FormatException>().having(
+            (error) => error.message,
+            'message',
+            contains('coverage.show_top_low_files'),
           ),
         ),
       );

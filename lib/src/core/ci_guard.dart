@@ -141,6 +141,8 @@ class CiGuard {
         coveragePath: options.coveragePath,
         minimumCoverage: options.minCoverage,
         excludePatterns: options.coverageExclude,
+        perFileMinCoverage: options.perFileMinCoverage,
+        showTopLowFiles: options.showTopLowFiles,
       );
 
       if (result.excludedFilesCount > 0) {
@@ -156,6 +158,15 @@ class CiGuard {
         'Coverage: $formattedCoverage% '
         '(${result.summary.linesHit}/${result.summary.linesFound} lines)',
       );
+
+      if (result.lowCoverageFiles.isNotEmpty) {
+        _console.info('\nLow coverage files:\n');
+        for (final file in result.lowCoverageFiles) {
+          _console.info(
+            '${file.path} -> ${file.percentage.toStringAsFixed(2)}%',
+          );
+        }
+      }
 
       if (!result.success) {
         _console.error(
