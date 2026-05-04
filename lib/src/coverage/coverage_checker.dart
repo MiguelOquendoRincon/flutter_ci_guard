@@ -33,6 +33,7 @@ class CoverageCheckResult {
     required this.minimumCoverage,
     required this.excludedFilesCount,
     required this.includedFilesCount,
+    required this.lowCoverageFiles,
   });
 
   /// Whether the actual coverage met or exceeded [minimumCoverage].
@@ -55,6 +56,9 @@ class CoverageCheckResult {
 
   /// Number of files included in the final coverage calculation.
   final int includedFilesCount;
+
+  /// Low-coverage files selected for optional console output.
+  final List<FileCoverageRecord> lowCoverageFiles;
 }
 
 /// Reads an LCOV file and checks whether coverage meets a minimum threshold.
@@ -102,6 +106,8 @@ class CoverageChecker {
     required String coveragePath,
     required int minimumCoverage,
     List<String> excludePatterns = const <String>[],
+    int? perFileMinCoverage,
+    int? showTopLowFiles,
   }) {
     final File file = File(coveragePath);
 
@@ -125,6 +131,12 @@ class CoverageChecker {
     }
 
     final CoverageSummary summary = _aggregator.aggregate(includedRecords);
+    final List<FileCoverageRecord> lowCoverageFiles = _aggregator
+        .selectLowCoverageFiles(
+          includedRecords,
+          minimumCoverage: perFileMinCoverage,
+          topCount: showTopLowFiles,
+        );
 
     final bool passed = summary.percentage >= minimumCoverage;
 
@@ -135,6 +147,7 @@ class CoverageChecker {
       minimumCoverage: minimumCoverage,
       excludedFilesCount: records.length - includedRecords.length,
       includedFilesCount: includedRecords.length,
+      lowCoverageFiles: lowCoverageFiles,
     );
   }
 }

@@ -51,6 +51,7 @@ void main() {
       expect(result.minimumCoverage, equals(80));
       expect(result.excludedFilesCount, equals(0));
       expect(result.includedFilesCount, equals(1));
+      expect(result.lowCoverageFiles, isEmpty);
     });
 
     test('returns failure when coverage is below threshold', () {
@@ -140,6 +141,7 @@ end_of_record
       expect(result.summary.linesHit, equals(3));
       expect(result.excludedFilesCount, equals(0));
       expect(result.includedFilesCount, equals(2));
+      expect(result.lowCoverageFiles, isEmpty);
     });
 
     test('excludes one file and recalculates coverage', () {
@@ -166,6 +168,7 @@ end_of_record
       expect(result.summary.linesHit, equals(1));
       expect(result.summary.percentage, equals(50.0));
       expect(result.excludedFilesCount, equals(1));
+      expect(result.lowCoverageFiles, isEmpty);
     });
 
     test('supports multiple exclusion patterns and nested paths', () {
@@ -196,6 +199,7 @@ end_of_record
       expect(result.summary.linesHit, equals(1));
       expect(result.excludedFilesCount, equals(2));
       expect(result.includedFilesCount, equals(1));
+      expect(result.lowCoverageFiles, isEmpty);
     });
 
     test('matches Windows-style paths when excluding files', () {
@@ -221,6 +225,7 @@ end_of_record
       expect(result.summary.linesFound, equals(2));
       expect(result.summary.linesHit, equals(1));
       expect(result.excludedFilesCount, equals(1));
+      expect(result.lowCoverageFiles, isEmpty);
     });
 
     test('throws a clear error when all files are excluded', () {
@@ -241,6 +246,126 @@ end_of_record
         ),
         throwsA(isA<CoverageCheckException>()),
       );
+    });
+
+    test('returns low-coverage files when only per_file_min is configured', () {
+      File(coveragePath).writeAsStringSync('''
+SF:lib/a.dart
+DA:1,1
+DA:2,0
+end_of_record
+SF:lib/b.dart
+DA:1,1
+DA:2,1
+end_of_record
+''');
+
+      final realChecker = CoverageChecker(parser: const LcovParser());
+
+      final result = realChecker.check(
+        coveragePath: coveragePath,
+        minimumCoverage: 40,
+        perFileMinCoverage: 70,
+      );
+
+      expect(result.lowCoverageFiles, hasLength(1));
+      expect(result.lowCoverageFiles.single.path, equals('lib/a.dart'));
+      expect(result.lowCoverageFiles.single.percentage, equals(50.0));
+    });
+
+    test(
+      'returns low-coverage files when only show_top_low_files is configured',
+      () {
+        File(coveragePath).writeAsStringSync('''
+SF:lib/a.dart
+DA:1,0
+DA:2,0
+end_of_record
+SF:lib/b.dart
+DA:1,1
+DA:2,0
+end_of_record
+SF:lib/c.dart
+DA:1,1
+DA:2,1
+end_of_record
+''');
+
+        final realChecker = CoverageChecker(parser: const LcovParser());
+
+        final result = realChecker.check(
+          coveragePath: coveragePath,
+          minimumCoverage: 40,
+          showTopLowFiles: 2,
+        );
+
+        expect(
+          result.lowCoverageFiles
+              .map((FileCoverageRecord record) => record.path)
+              .toList(),
+          equals(const <String>['lib/a.dart', 'lib/b.dart']),
+        );
+      },
+    );
+
+    test('applies threshold, top N, and exclusions together', () {
+      File(coveragePath).writeAsStringSync('''
+SF:lib/a.dart
+DA:1,0
+DA:2,0
+end_of_record
+SF:lib/b.dart
+DA:1,1
+DA:2,0
+end_of_record
+SF:lib/c.g.dart
+DA:1,0
+DA:2,0
+end_of_record
+SF:lib/d.dart
+DA:1,1
+DA:2,1
+end_of_record
+''');
+
+      final realChecker = CoverageChecker(parser: const LcovParser());
+
+      final result = realChecker.check(
+        coveragePath: coveragePath,
+        minimumCoverage: 40,
+        excludePatterns: const <String>['**/*.g.dart'],
+        perFileMinCoverage: 70,
+        showTopLowFiles: 2,
+      );
+
+      expect(
+        result.lowCoverageFiles
+            .map((FileCoverageRecord record) => record.path)
+            .toList(),
+        equals(const <String>['lib/a.dart', 'lib/b.dart']),
+      );
+    });
+
+    test('ignores zero-line files in per-file output safely', () {
+      File(coveragePath).writeAsStringSync('''
+SF:lib/a.dart
+end_of_record
+SF:lib/b.dart
+DA:1,1
+DA:2,0
+end_of_record
+''');
+
+      final realChecker = CoverageChecker(parser: const LcovParser());
+
+      final result = realChecker.check(
+        coveragePath: coveragePath,
+        minimumCoverage: 40,
+        showTopLowFiles: 5,
+      );
+
+      expect(result.lowCoverageFiles, hasLength(1));
+      expect(result.lowCoverageFiles.single.path, equals('lib/b.dart'));
     });
   });
 }
