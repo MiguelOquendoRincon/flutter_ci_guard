@@ -14,6 +14,8 @@ class CiGuardOptions {
     required this.minCoverage,
     required this.coveragePath,
     required this.coverageExclude,
+    required this.perFileMinCoverage,
+    required this.showTopLowFiles,
     required this.skipFormat,
     required this.skipAnalyze,
     required this.skipTests,
@@ -29,6 +31,12 @@ class CiGuardOptions {
 
   /// Glob patterns for files excluded from coverage calculation.
   final List<String> coverageExclude;
+
+  /// Minimum acceptable per-file coverage percentage for low-file reporting.
+  final int? perFileMinCoverage;
+
+  /// Maximum number of low-coverage files to show in console output.
+  final int? showTopLowFiles;
 
   /// When `true`, the format quality gate is skipped entirely.
   final bool skipFormat;

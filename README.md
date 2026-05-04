@@ -3,7 +3,7 @@
 [![pub package](https://img.shields.io/pub/v/flutter_ci_guard.svg)](https://pub.dev/packages/flutter_ci_guard)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
-`flutter_ci_guard` is a lightweight CLI tool for running Flutter quality gates in CI. It checks formatting, static analysis, tests, and coverage thresholds from one command, and now supports YAML-based configuration.
+`flutter_ci_guard` is a lightweight CLI tool for running Flutter quality gates in CI. It checks formatting, static analysis, tests, coverage thresholds, and optional per-file coverage insights from one command.
 
 ## 🚀 What does it solve?
 
@@ -14,6 +14,7 @@ CIs often have separate steps for formatting, linting, and testing. If one fails
 2. 🔍 **Runs static analysis** (fails if `flutter analyze` finds issues).
 3. 🧪 **Executes tests with coverage** (fails if tests fail).
 4. 📈 **Enforces coverage thresholds** (fails if coverage is below your limit).
+5. 📄 **Highlights low-coverage files** when per-file reporting is configured.
 
 ---
 
@@ -72,7 +73,8 @@ coverage:
   exclude:
     - "**/*.g.dart"
     - "**/*.freezed.dart"
-    - "**/generated/**"
+  per_file_min: 70
+  show_top_low_files: 5
 ```
 
 Supported keys in this release:
@@ -83,6 +85,8 @@ Supported keys in this release:
 - `coverage.min`
 - `coverage.path`
 - `coverage.exclude`
+- `coverage.per_file_min`
+- `coverage.show_top_low_files`
 
 You can also point to a custom config file:
 
@@ -115,6 +119,9 @@ Exclusions are applied per LCOV file record before global aggregation. This is
 useful for generated code and other paths you do not want counted in the final
 percentage.
 
+Per-file insights use the same filtered file set, so excluded files are also
+removed before low-coverage files are selected.
+
 Supported glob-style patterns include examples such as:
 
 - `**/*.g.dart`
@@ -129,6 +136,42 @@ dart run flutter_ci_guard --coverage-exclude "**/*.g.dart,**/*.freezed.dart"
 
 When no exclusions are configured, coverage behavior remains unchanged from
 previous versions.
+
+### Per-file coverage insights
+
+You can optionally show the lowest-coverage files after the global summary:
+
+```yaml
+coverage:
+  min: 85
+  path: coverage/lcov.info
+  exclude:
+    - "**/*.g.dart"
+    - "**/*.freezed.dart"
+  per_file_min: 70
+  show_top_low_files: 5
+```
+
+- `coverage.per_file_min` shows only files below the configured percentage.
+- `coverage.show_top_low_files` limits output to the lowest N files.
+
+Behavior stays backward compatible:
+
+- If neither key is configured, no per-file output is shown.
+- If only `per_file_min` is configured, all files below that threshold are shown.
+- If only `show_top_low_files` is configured, the lowest N files are shown.
+- If both are configured, files below the threshold are shown up to the limit.
+
+Example output:
+
+```text
+Coverage: 82.00% (820/1000 lines)
+
+Low coverage files:
+
+lib/auth/login_cubit.dart -> 54.00%
+lib/cart/add_item.dart -> 61.00%
+```
 
 ---
 
@@ -166,6 +209,25 @@ jobs:
       - name: Run Quality Gates
         run: dart run flutter_ci_guard --min-coverage 90
 ```
+
+### Publishing releases
+
+This package is intended to publish to pub.dev from GitHub Actions only when a
+version tag is pushed. Pushes and pull requests on `main` run validation only
+and do not publish.
+
+Before using automated publishing, configure pub.dev trusted publishing in the
+package Admin settings for this repository and use the tag pattern
+`v{{version}}`.
+
+Example release flow:
+
+```bash
+git tag v0.3.0
+git push origin v0.3.0
+```
+
+The version in `pubspec.yaml` must match the tag version exactly.
 
 ---
 

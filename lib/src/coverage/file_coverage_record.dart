@@ -22,4 +22,9 @@ class FileCoverageRecord {
   CoverageSummary get summary {
     return CoverageSummary(linesFound: linesFound, linesHit: linesHit);
   }
+
+  /// Coverage percentage for this file, in the range `[0.0, 100.0]`.
+  double get percentage {
+    return summary.percentage;
+  }
 }

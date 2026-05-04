@@ -83,6 +83,33 @@ class GuardConfigValidator {
       );
     }
 
+    final dynamic perFileMinCoverage = rawCoverage?['per_file_min'];
+    if (perFileMinCoverage != null && perFileMinCoverage is! int) {
+      throw const FormatException(
+        'Config key "coverage.per_file_min" must be an int.',
+      );
+    }
+
+    if (perFileMinCoverage != null &&
+        (perFileMinCoverage < 0 || perFileMinCoverage > 100)) {
+      throw const FormatException(
+        'Config key "coverage.per_file_min" must be between 0 and 100.',
+      );
+    }
+
+    final dynamic showTopLowFiles = rawCoverage?['show_top_low_files'];
+    if (showTopLowFiles != null && showTopLowFiles is! int) {
+      throw const FormatException(
+        'Config key "coverage.show_top_low_files" must be an int.',
+      );
+    }
+
+    if (showTopLowFiles != null && showTopLowFiles < 1) {
+      throw const FormatException(
+        'Config key "coverage.show_top_low_files" must be greater than 0.',
+      );
+    }
+
     return GuardConfig(
       formatStepEnabled: format as bool?,
       analyzeStepEnabled: analyze as bool?,
@@ -94,6 +121,8 @@ class GuardConfigValidator {
           .map((String pattern) => pattern.trim())
           .where((String pattern) => pattern.isNotEmpty)
           .toList(growable: false),
+      perFileMinCoverage: perFileMinCoverage as int?,
+      showTopLowFiles: showTopLowFiles as int?,
     );
   }
 }
