@@ -57,6 +57,16 @@ class OptionsParser {
         valueHelp: 'path',
       )
       ..addFlag(
+        'json',
+        negatable: false,
+        help: 'Print the final execution report as JSON to stdout.',
+      )
+      ..addOption(
+        'json-output',
+        help: 'Write the final execution report as JSON to a file.',
+        valueHelp: 'path',
+      )
+      ..addFlag(
         'skip-format',
         negatable: false,
         help: 'Skip flutter format validation.',
@@ -101,6 +111,11 @@ class OptionsParser {
 
     if (options.coveragePath.trim().isEmpty) {
       throw const FormatException('--coverage-path cannot be empty.');
+    }
+
+    if (options.jsonOutputPath != null &&
+        options.jsonOutputPath!.trim().isEmpty) {
+      throw const FormatException('--json-output cannot be empty.');
     }
 
     return options;

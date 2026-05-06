@@ -8,16 +8,23 @@ import 'dart:io';
 /// stdout.
 class Console {
   /// Creates a const [Console].
-  const Console();
+  const Console({void Function(String message)? writer})
+    : _writer = writer ?? _defaultWriter;
+
+  final void Function(String message) _writer;
+
+  static void _defaultWriter(String message) {
+    stdout.writeln(message);
+  }
 
   /// Writes an informational [message] to stdout.
   void info(String message) {
-    stdout.writeln(message);
+    _writer(message);
   }
 
   /// Writes a success [message] to stdout.
   void success(String message) {
-    stdout.writeln(message);
+    _writer(message);
   }
 
   /// Writes an error [message] to stdout.
@@ -25,17 +32,17 @@ class Console {
   /// Note: the message is intentionally written to stdout (not stderr) so
   /// that CI log streams remain in order and easy to read.
   void error(String message) {
-    stdout.writeln(message);
+    _writer(message);
   }
 
   /// Writes a warning [message] to stdout.
   void warning(String message) {
-    stdout.writeln(message);
+    _writer(message);
   }
 
   /// Writes a section header [title] to stdout, visually separated from
   /// surrounding output by a `==>` prefix and leading blank line.
   void section(String title) {
-    stdout.writeln('\n==> $title');
+    _writer('\n==> $title');
   }
 }

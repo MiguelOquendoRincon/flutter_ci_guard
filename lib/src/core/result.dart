@@ -1,3 +1,5 @@
+import '../coverage/coverage_checker.dart';
+
 /// The result of running a single quality-gate step (e.g., format, analyze).
 ///
 /// Produced by [CommandExecutor.run] and stored in [GuardRunResult.completedSteps].
@@ -7,6 +9,7 @@ class StepResult {
     required this.name,
     required this.success,
     required this.exitCode,
+    this.durationMs = 0,
     this.stdout = '',
     this.stderr = '',
   });
@@ -19,6 +22,9 @@ class StepResult {
 
   /// The raw process exit code returned by the underlying command.
   final int exitCode;
+
+  /// The step execution time in milliseconds.
+  final int durationMs;
 
   /// The standard output captured from the process, if any.
   final String stdout;
@@ -38,6 +44,7 @@ class GuardRunResult {
     required this.success,
     required this.exitCode,
     required this.completedSteps,
+    this.coverageResult,
     this.failedStep,
   });
 
@@ -51,6 +58,9 @@ class GuardRunResult {
 
   /// All steps that were executed, in order, regardless of outcome.
   final List<StepResult> completedSteps;
+
+  /// The final coverage evaluation result, when available.
+  final CoverageCheckResult? coverageResult;
 
   /// The first step that failed, or `null` if all steps succeeded.
   final StepResult? failedStep;

@@ -177,6 +177,7 @@ class CiGuard {
           success: false,
           exitCode: result.exitCode,
           completedSteps: completedSteps,
+          coverageResult: result,
         );
       }
 
@@ -186,6 +187,7 @@ class CiGuard {
         success: true,
         exitCode: ExitCodes.success,
         completedSteps: completedSteps,
+        coverageResult: result,
       );
     } on FileSystemException {
       _console.error('Coverage file not found at "${options.coveragePath}".');

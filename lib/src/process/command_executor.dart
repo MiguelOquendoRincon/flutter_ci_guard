@@ -35,7 +35,9 @@ class ProcessCommandExecutor implements CommandExecutor {
     required String executable,
     required List<String> arguments,
   }) async {
+    final Stopwatch stopwatch = Stopwatch()..start();
     final ProcessResult result = await Process.run(executable, arguments);
+    stopwatch.stop();
 
     final String stdoutText = (result.stdout ?? '').toString();
     final String stderrText = (result.stderr ?? '').toString();
@@ -45,6 +47,7 @@ class ProcessCommandExecutor implements CommandExecutor {
       name: stepName,
       success: exitCode == 0,
       exitCode: exitCode,
+      durationMs: stopwatch.elapsedMilliseconds,
       stdout: stdoutText,
       stderr: stderrText,
     );

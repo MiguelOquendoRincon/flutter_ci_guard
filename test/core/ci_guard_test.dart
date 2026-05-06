@@ -53,6 +53,8 @@ void main() {
         skipFormat: false,
         skipAnalyze: false,
         skipTests: false,
+        json: false,
+        jsonOutputPath: null,
       );
 
       when(
@@ -106,6 +108,8 @@ void main() {
         skipFormat: false,
         skipAnalyze: false,
         skipTests: false,
+        json: false,
+        jsonOutputPath: null,
       );
 
       when(
@@ -148,6 +152,8 @@ void main() {
         skipFormat: true,
         skipAnalyze: true,
         skipTests: false,
+        json: false,
+        jsonOutputPath: null,
       );
 
       when(
@@ -216,6 +222,8 @@ void main() {
           skipFormat: true,
           skipAnalyze: true,
           skipTests: true,
+          json: false,
+          jsonOutputPath: null,
         );
 
         when(
@@ -257,6 +265,8 @@ void main() {
           skipFormat: true,
           skipAnalyze: true,
           skipTests: true,
+          json: false,
+          jsonOutputPath: null,
         );
 
         when(
@@ -288,6 +298,8 @@ void main() {
           skipFormat: true,
           skipAnalyze: true,
           skipTests: true,
+          json: false,
+          jsonOutputPath: null,
         );
 
         when(
@@ -319,6 +331,8 @@ void main() {
           skipFormat: true,
           skipAnalyze: true,
           skipTests: true,
+          json: false,
+          jsonOutputPath: null,
         );
 
         when(
@@ -361,6 +375,8 @@ void main() {
             skipFormat: true,
             skipAnalyze: true,
             skipTests: true,
+            json: false,
+            jsonOutputPath: null,
           );
 
           when(
@@ -399,6 +415,8 @@ void main() {
           skipFormat: true,
           skipAnalyze: true,
           skipTests: true,
+          json: false,
+          jsonOutputPath: null,
         );
 
         when(
