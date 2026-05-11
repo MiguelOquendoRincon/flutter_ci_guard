@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.4.0
+
+Add JSON output support for CI integration.
+
+### Added
+- Support `--json` to print a machine-readable JSON report to stdout.
+- Support `--json-output <path>` to write the JSON report to a file.
+- Serialize execution step results with success status and duration.
+- Serialize coverage results including summary values, excluded file count, and low-coverage files.
+
+### Notes
+- Existing console output remains backward compatible unless a JSON flag is used.
+
 ## 0.3.0
 
 Add per-file coverage insights for `flutter_ci_guard`.

@@ -173,6 +173,39 @@ lib/auth/login_cubit.dart -> 54.00%
 lib/cart/add_item.dart -> 61.00%
 ```
 
+### JSON output
+
+For CI systems and automation, `flutter_ci_guard` can emit a machine-readable
+JSON report with the final result, executed steps, and coverage summary.
+
+`--json` prints only JSON to stdout, which is useful when another tool needs to
+parse the output directly. `--json-output` writes the same report to a file.
+When neither flag is used, the existing console output remains unchanged.
+
+```bash
+dart run flutter_ci_guard --json
+```
+
+```bash
+dart run flutter_ci_guard --json-output report.json
+```
+
+```bash
+dart run flutter_ci_guard --json --json-output report.json
+```
+
+Example JSON:
+
+```json
+{
+  "success": true,
+  "exit_code": 0,
+  "coverage": {
+    "global_percentage": 82.4
+  }
+}
+```
+
 ---
 
 ## ⚙️ Configuration Flags
@@ -183,6 +216,8 @@ lib/cart/add_item.dart -> 61.00%
 | `--min-coverage` | `80` | Required percentage (0-100). |
 | `--coverage-path` | `coverage/lcov.info` | Path to the generated LCOV file. |
 | `--coverage-exclude` | - | Comma-separated glob patterns to exclude from coverage. |
+| `--json` | `false` | Print only the final JSON report to stdout. |
+| `--json-output` | - | Write the final JSON report to a file. |
 | `--skip-format` | `false` | Skip `dart format` validation. |
 | `--skip-analyze` | `false` | Skip `flutter analyze`. |
 | `--skip-tests` | `false` | Skip `flutter test --coverage`. |
