@@ -19,6 +19,8 @@ class CiGuardOptions {
     required this.skipFormat,
     required this.skipAnalyze,
     required this.skipTests,
+    required this.json,
+    required this.jsonOutputPath,
   });
 
   /// Minimum acceptable coverage percentage (inclusive), in the range `[0, 100]`.
@@ -49,4 +51,10 @@ class CiGuardOptions {
   /// Note: skipping tests does **not** skip the coverage check. The LCOV
   /// file at [coveragePath] must still exist and be valid.
   final bool skipTests;
+
+  /// When `true`, emits the final run report as JSON to stdout.
+  final bool json;
+
+  /// Optional file path where the final run report is written as JSON.
+  final String? jsonOutputPath;
 }

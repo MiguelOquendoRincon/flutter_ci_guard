@@ -41,6 +41,8 @@ class GuardConfigMerger {
     final bool skipTests = cliResults.wasParsed('skip-tests')
         ? cliResults['skip-tests'] as bool
         : !(yamlConfig.testStepEnabled ?? true);
+    final bool json = cliResults['json'] as bool;
+    final String? jsonOutputPath = cliResults['json-output'] as String?;
 
     return CiGuardOptions(
       minCoverage: minCoverage,
@@ -51,6 +53,8 @@ class GuardConfigMerger {
       skipFormat: skipFormat,
       skipAnalyze: skipAnalyze,
       skipTests: skipTests,
+      json: json,
+      jsonOutputPath: jsonOutputPath,
     );
   }
 
