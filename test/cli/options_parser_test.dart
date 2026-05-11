@@ -29,6 +29,8 @@ void main() {
       expect(options.skipFormat, isFalse);
       expect(options.skipAnalyze, isFalse);
       expect(options.skipTests, isFalse);
+      expect(options.json, isFalse);
+      expect(options.jsonOutputPath, isNull);
     });
 
     test('parses custom values correctly', () {
@@ -42,6 +44,9 @@ void main() {
         '--skip-format',
         '--skip-analyze',
         '--skip-tests',
+        '--json',
+        '--json-output',
+        'build/report.json',
       ]);
       expect(options.minCoverage, equals(90));
       expect(options.coveragePath, equals('custom/lcov.info'));
@@ -54,6 +59,8 @@ void main() {
       expect(options.skipFormat, isTrue);
       expect(options.skipAnalyze, isTrue);
       expect(options.skipTests, isTrue);
+      expect(options.json, isTrue);
+      expect(options.jsonOutputPath, equals('build/report.json'));
     });
 
     test('throws FormatException for invalid min-coverage', () {
@@ -78,6 +85,13 @@ void main() {
       // Note: ArgParser might catch missing values, but our manual validation handles empty strings
       expect(
         () => parser.parse(['--coverage-path', ' ']),
+        throwsA(isA<FormatException>()),
+      );
+    });
+
+    test('throws FormatException for empty json-output', () {
+      expect(
+        () => parser.parse(['--json-output', ' ']),
         throwsA(isA<FormatException>()),
       );
     });
@@ -112,6 +126,8 @@ coverage:
       expect(options.skipFormat, isTrue);
       expect(options.skipAnalyze, isFalse);
       expect(options.skipTests, isTrue);
+      expect(options.json, isFalse);
+      expect(options.jsonOutputPath, isNull);
     });
 
     test('merges partial config with defaults', () {
@@ -130,6 +146,8 @@ coverage:
       expect(options.skipFormat, isFalse);
       expect(options.skipAnalyze, isFalse);
       expect(options.skipTests, isFalse);
+      expect(options.json, isFalse);
+      expect(options.jsonOutputPath, isNull);
     });
 
     test('CLI arguments override YAML config values', () {
@@ -155,6 +173,8 @@ coverage:
         '**/*.freezed.dart',
         '--skip-format',
         '--skip-tests',
+        '--json-output',
+        'cli-report.json',
       ], workingDirectory: tempDir.path);
 
       expect(options.minCoverage, equals(95));
@@ -168,6 +188,8 @@ coverage:
       expect(options.skipFormat, isTrue);
       expect(options.skipAnalyze, isTrue);
       expect(options.skipTests, isTrue);
+      expect(options.json, isFalse);
+      expect(options.jsonOutputPath, equals('cli-report.json'));
     });
 
     test('loads config from explicit --config path', () {
@@ -183,6 +205,8 @@ coverage:
       expect(options.coveragePath, equals(CiGuardOptions.defaultCoveragePath));
       expect(options.perFileMinCoverage, isNull);
       expect(options.showTopLowFiles, isNull);
+      expect(options.json, isFalse);
+      expect(options.jsonOutputPath, isNull);
     });
 
     test('throws FormatException for missing explicit config file', () {
@@ -297,6 +321,8 @@ coverage:
       expect(usage, contains('--min-coverage'));
       expect(usage, contains('--coverage-exclude'));
       expect(usage, contains('--config'));
+      expect(usage, contains('--json'));
+      expect(usage, contains('--json-output'));
     });
   });
 }
