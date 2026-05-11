@@ -16,7 +16,7 @@ class GuardConfigValidator {
 
     if (rawConfig is! Map) {
       throw const FormatException(
-        'Config root must be a map with "steps" and/or "coverage" sections.',
+        'Config root must be a map with "steps", "coverage", and/or "output" sections.',
       );
     }
 
@@ -28,6 +28,11 @@ class GuardConfigValidator {
     final dynamic rawCoverage = rawConfig['coverage'];
     if (rawCoverage != null && rawCoverage is! Map) {
       throw const FormatException('Config key "coverage" must be a map.');
+    }
+
+    final dynamic rawOutput = rawConfig['output'];
+    if (rawOutput != null && rawOutput is! Map) {
+      throw const FormatException('Config key "output" must be a map.');
     }
 
     final dynamic format = rawSteps?['format'];
@@ -110,6 +115,13 @@ class GuardConfigValidator {
       );
     }
 
+    final dynamic githubAnnotations = rawOutput?['github_annotations'];
+    if (githubAnnotations != null && githubAnnotations is! bool) {
+      throw const FormatException(
+        'Config key "output.github_annotations" must be a bool.',
+      );
+    }
+
     return GuardConfig(
       formatStepEnabled: format as bool?,
       analyzeStepEnabled: analyze as bool?,
@@ -123,6 +135,7 @@ class GuardConfigValidator {
           .toList(growable: false),
       perFileMinCoverage: perFileMinCoverage as int?,
       showTopLowFiles: showTopLowFiles as int?,
+      githubAnnotations: githubAnnotations as bool?,
     );
   }
 }

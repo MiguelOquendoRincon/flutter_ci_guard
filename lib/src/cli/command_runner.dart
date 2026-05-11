@@ -11,6 +11,7 @@ import '../process/command_executor.dart';
 import '../coverage/coverage_checker.dart';
 import '../coverage/lcov_parser.dart';
 import '../report/guard_report.dart';
+import '../report/github_annotations_reporter.dart';
 import 'options_parser.dart';
 import 'options.dart';
 
@@ -63,6 +64,11 @@ Future<int> runFlutterCiGuard(
       result: result,
       outputWriter: outputWriter ?? stdout.writeln,
     );
+    _emitGitHubAnnotations(
+      options: options,
+      result: result,
+      outputWriter: outputWriter ?? stdout.writeln,
+    );
     return result.exitCode;
   } on FormatException catch (error) {
     defaultConsole.error('Invalid arguments: ${error.message}\n');
@@ -93,6 +99,20 @@ Future<void> _emitJsonReport({
     file.parent.createSync(recursive: true);
     await file.writeAsString(jsonReport);
   }
+}
+
+void _emitGitHubAnnotations({
+  required CiGuardOptions options,
+  required GuardRunResult result,
+  required void Function(String message) outputWriter,
+}) {
+  if (options.json || !options.githubAnnotations) {
+    return;
+  }
+
+  GitHubAnnotationsReporter(
+    writer: outputWriter,
+  ).reportLowCoverageFiles(options: options, result: result);
 }
 
 void _noopWrite(String _) {}

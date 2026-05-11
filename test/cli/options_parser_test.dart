@@ -26,6 +26,7 @@ void main() {
       expect(options.coverageExclude, isEmpty);
       expect(options.perFileMinCoverage, isNull);
       expect(options.showTopLowFiles, isNull);
+      expect(options.githubAnnotations, isFalse);
       expect(options.skipFormat, isFalse);
       expect(options.skipAnalyze, isFalse);
       expect(options.skipTests, isFalse);
@@ -44,6 +45,7 @@ void main() {
         '--skip-format',
         '--skip-analyze',
         '--skip-tests',
+        '--github-annotations',
         '--json',
         '--json-output',
         'build/report.json',
@@ -56,6 +58,7 @@ void main() {
       );
       expect(options.perFileMinCoverage, isNull);
       expect(options.showTopLowFiles, isNull);
+      expect(options.githubAnnotations, isTrue);
       expect(options.skipFormat, isTrue);
       expect(options.skipAnalyze, isTrue);
       expect(options.skipTests, isTrue);
@@ -111,6 +114,8 @@ coverage:
     - "**/generated/**"
   per_file_min: 70
   show_top_low_files: 5
+output:
+  github_annotations: true
 ''');
 
       final options = parser.parse([], workingDirectory: tempDir.path);
@@ -123,6 +128,7 @@ coverage:
       );
       expect(options.perFileMinCoverage, equals(70));
       expect(options.showTopLowFiles, equals(5));
+      expect(options.githubAnnotations, isTrue);
       expect(options.skipFormat, isTrue);
       expect(options.skipAnalyze, isFalse);
       expect(options.skipTests, isTrue);
@@ -143,6 +149,7 @@ coverage:
       expect(options.coveragePath, equals(CiGuardOptions.defaultCoveragePath));
       expect(options.perFileMinCoverage, isNull);
       expect(options.showTopLowFiles, isNull);
+      expect(options.githubAnnotations, isFalse);
       expect(options.skipFormat, isFalse);
       expect(options.skipAnalyze, isFalse);
       expect(options.skipTests, isFalse);
@@ -162,6 +169,8 @@ coverage:
   path: from-config.info
   exclude:
     - "**/*.g.dart"
+output:
+  github_annotations: false
 ''');
 
       final options = parser.parse([
@@ -173,6 +182,7 @@ coverage:
         '**/*.freezed.dart',
         '--skip-format',
         '--skip-tests',
+        '--github-annotations',
         '--json-output',
         'cli-report.json',
       ], workingDirectory: tempDir.path);
@@ -185,6 +195,7 @@ coverage:
       );
       expect(options.perFileMinCoverage, isNull);
       expect(options.showTopLowFiles, isNull);
+      expect(options.githubAnnotations, isTrue);
       expect(options.skipFormat, isTrue);
       expect(options.skipAnalyze, isTrue);
       expect(options.skipTests, isTrue);
@@ -205,6 +216,7 @@ coverage:
       expect(options.coveragePath, equals(CiGuardOptions.defaultCoveragePath));
       expect(options.perFileMinCoverage, isNull);
       expect(options.showTopLowFiles, isNull);
+      expect(options.githubAnnotations, isFalse);
       expect(options.json, isFalse);
       expect(options.jsonOutputPath, isNull);
     });
@@ -314,6 +326,25 @@ coverage:
       );
     });
 
+    test('throws FormatException for invalid output.github_annotations', () {
+      final configFile = File('${tempDir.path}/flutter_ci_guard.yaml');
+      configFile.writeAsStringSync('''
+output:
+  github_annotations: "yes"
+''');
+
+      expect(
+        () => parser.parse([], workingDirectory: tempDir.path),
+        throwsA(
+          isA<FormatException>().having(
+            (error) => error.message,
+            'message',
+            contains('output.github_annotations'),
+          ),
+        ),
+      );
+    });
+
     test('getUsage returns formatted string', () {
       final argParser = parser.buildParser();
       final usage = parser.getUsage(argParser);
@@ -321,6 +352,7 @@ coverage:
       expect(usage, contains('--min-coverage'));
       expect(usage, contains('--coverage-exclude'));
       expect(usage, contains('--config'));
+      expect(usage, contains('--github-annotations'));
       expect(usage, contains('--json'));
       expect(usage, contains('--json-output'));
     });

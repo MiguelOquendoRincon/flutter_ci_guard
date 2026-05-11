@@ -16,6 +16,7 @@ class CiGuardOptions {
     required this.coverageExclude,
     required this.perFileMinCoverage,
     required this.showTopLowFiles,
+    required this.githubAnnotations,
     required this.skipFormat,
     required this.skipAnalyze,
     required this.skipTests,
@@ -39,6 +40,9 @@ class CiGuardOptions {
 
   /// Maximum number of low-coverage files to show in console output.
   final int? showTopLowFiles;
+
+  /// When `true`, emits GitHub Actions workflow command annotations to stdout.
+  final bool githubAnnotations;
 
   /// When `true`, the format quality gate is skipped entirely.
   final bool skipFormat;

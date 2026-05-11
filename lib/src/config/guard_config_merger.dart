@@ -29,6 +29,9 @@ class GuardConfigMerger {
 
     final int? perFileMinCoverage = yamlConfig.perFileMinCoverage;
     final int? showTopLowFiles = yamlConfig.showTopLowFiles;
+    final bool githubAnnotations = cliResults['github-annotations'] as bool
+        ? true
+        : (yamlConfig.githubAnnotations ?? false);
 
     final bool skipFormat = cliResults.wasParsed('skip-format')
         ? cliResults['skip-format'] as bool
@@ -50,6 +53,7 @@ class GuardConfigMerger {
       coverageExclude: coverageExclude,
       perFileMinCoverage: perFileMinCoverage,
       showTopLowFiles: showTopLowFiles,
+      githubAnnotations: githubAnnotations,
       skipFormat: skipFormat,
       skipAnalyze: skipAnalyze,
       skipTests: skipTests,

@@ -57,6 +57,11 @@ class OptionsParser {
         valueHelp: 'path',
       )
       ..addFlag(
+        'github-annotations',
+        negatable: false,
+        help: 'Print GitHub Actions low-coverage annotations to stdout.',
+      )
+      ..addFlag(
         'json',
         negatable: false,
         help: 'Print the final execution report as JSON to stdout.',

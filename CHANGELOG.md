@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.5.0
+
+Add optional GitHub Actions annotations for low-coverage files.
+
+### Added
+- Support `--github-annotations` to print GitHub Actions workflow command annotations to stdout.
+- Support `output.github_annotations` in `flutter_ci_guard.yaml`.
+- Reuse existing per-file low coverage insights to annotate files directly in GitHub Actions logs and PR UI.
+- Cap annotation output to `coverage.show_top_low_files` when configured, or 10 annotations by default.
+- Keep workflow command annotations compatible with existing low-coverage file reporting.
+
+### Notes
+- Default console output remains backward compatible unless GitHub annotations are enabled.
+- `--json` output remains JSON-only and does not print annotations to stdout.
+
 ## 0.4.0
 
 Add JSON output support for CI integration.

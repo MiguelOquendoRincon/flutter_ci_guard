@@ -13,6 +13,7 @@ class GuardConfig {
     this.coverageExclude,
     this.perFileMinCoverage,
     this.showTopLowFiles,
+    this.githubAnnotations,
   });
 
   /// Whether the format step should run.
@@ -38,4 +39,7 @@ class GuardConfig {
 
   /// Maximum number of low-coverage files to show.
   final int? showTopLowFiles;
+
+  /// Whether GitHub Actions annotations should be emitted.
+  final bool? githubAnnotations;
 }

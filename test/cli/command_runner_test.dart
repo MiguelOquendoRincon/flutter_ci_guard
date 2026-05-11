@@ -199,5 +199,201 @@ end_of_record
       expect(coverage['lines_hit'], equals(0));
       expect(coverage['low_files'], isEmpty);
     });
+
+    test('does not print annotations when --json is enabled', () async {
+      final StringBuffer buffer = StringBuffer();
+      File('${tempDir.path}/flutter_ci_guard.yaml').writeAsStringSync('''
+coverage:
+  per_file_min: 80
+''');
+
+      await runFlutterCiGuard(
+        <String>[
+          '--json',
+          '--github-annotations',
+          '--skip-format',
+          '--skip-analyze',
+          '--skip-tests',
+          '--coverage-path',
+          coverageFile.path,
+        ],
+        executor: FakeCommandExecutor(const <StepResult>[]),
+        outputWriter: (String message) => buffer.writeln(message),
+        workingDirectory: tempDir.path,
+      );
+
+      final String output = buffer.toString();
+      expect(output, isNot(contains('::warning')));
+      expect(output, isNot(contains('::error')));
+      expect(() => jsonDecode(output), returnsNormally);
+    });
+  });
+
+  group('runFlutterCiGuard GitHub annotations', () {
+    late Directory tempDir;
+    late File coverageFile;
+
+    setUp(() {
+      tempDir = Directory.systemTemp.createTempSync('flutter_ci_guard_runner_');
+      coverageFile = File('${tempDir.path}/lcov.info')
+        ..writeAsStringSync('''
+TN:
+SF:lib/a.dart
+DA:1,0
+DA:2,1
+end_of_record
+TN:
+SF:lib/b.dart
+DA:1,0
+DA:2,0
+end_of_record
+TN:
+SF:lib/c.dart
+DA:1,1
+DA:2,1
+end_of_record
+''');
+    });
+
+    tearDown(() {
+      if (tempDir.existsSync()) {
+        tempDir.deleteSync(recursive: true);
+      }
+    });
+
+    test('does not print annotations by default', () async {
+      final StringBuffer buffer = StringBuffer();
+      File('${tempDir.path}/flutter_ci_guard.yaml').writeAsStringSync('''
+coverage:
+  per_file_min: 60
+''');
+
+      await runFlutterCiGuard(
+        <String>[
+          '--skip-format',
+          '--skip-analyze',
+          '--skip-tests',
+          '--coverage-path',
+          coverageFile.path,
+          '--min-coverage',
+          '50',
+          '--coverage-exclude',
+          '**/*.g.dart',
+        ],
+        executor: FakeCommandExecutor(const <StepResult>[]),
+        outputWriter: (String message) => buffer.writeln(message),
+        workingDirectory: tempDir.path,
+      );
+
+      expect(buffer.toString(), isNot(contains('::warning')));
+      expect(buffer.toString(), isNot(contains('::error')));
+    });
+
+    test('prints annotations when enabled', () async {
+      final StringBuffer buffer = StringBuffer();
+      File('${tempDir.path}/flutter_ci_guard.yaml').writeAsStringSync('''
+coverage:
+  per_file_min: 60
+''');
+
+      await runFlutterCiGuard(
+        <String>[
+          '--github-annotations',
+          '--skip-format',
+          '--skip-analyze',
+          '--skip-tests',
+          '--coverage-path',
+          coverageFile.path,
+          '--min-coverage',
+          '50',
+        ],
+        executor: FakeCommandExecutor(const <StepResult>[]),
+        outputWriter: (String message) => buffer.writeln(message),
+        workingDirectory: tempDir.path,
+      );
+
+      final String output = buffer.toString();
+      expect(output, contains('::warning'));
+      expect(output, contains('file=lib/b.dart,line=1,title=Low coverage'));
+      expect(output, contains('Coverage is 0.00%25, below required 60.00%25'));
+    });
+
+    test('config enables annotations', () async {
+      final StringBuffer buffer = StringBuffer();
+      File('${tempDir.path}/flutter_ci_guard.yaml').writeAsStringSync('''
+coverage:
+  per_file_min: 60
+output:
+  github_annotations: true
+''');
+
+      await runFlutterCiGuard(
+        <String>[
+          '--skip-format',
+          '--skip-analyze',
+          '--skip-tests',
+          '--coverage-path',
+          coverageFile.path,
+          '--min-coverage',
+          '50',
+        ],
+        executor: FakeCommandExecutor(const <StepResult>[]),
+        outputWriter: (String message) => buffer.writeln(message),
+        workingDirectory: tempDir.path,
+      );
+
+      expect(buffer.toString(), contains('::warning'));
+    });
+
+    test('annotations respect top low files limit', () async {
+      final StringBuffer buffer = StringBuffer();
+      File('${tempDir.path}/flutter_ci_guard.yaml').writeAsStringSync('''
+coverage:
+  show_top_low_files: 2
+''');
+
+      await runFlutterCiGuard(
+        <String>[
+          '--github-annotations',
+          '--skip-format',
+          '--skip-analyze',
+          '--skip-tests',
+          '--coverage-path',
+          coverageFile.path,
+          '--min-coverage',
+          '50',
+        ],
+        executor: FakeCommandExecutor(const <StepResult>[]),
+        outputWriter: (String message) => buffer.writeln(message),
+        workingDirectory: tempDir.path,
+      );
+
+      expect('::warning'.allMatches(buffer.toString()).length, equals(2));
+    });
+
+    test(
+      'prints no annotations when there are no low coverage files',
+      () async {
+        final StringBuffer buffer = StringBuffer();
+
+        await runFlutterCiGuard(
+          <String>[
+            '--github-annotations',
+            '--skip-format',
+            '--skip-analyze',
+            '--skip-tests',
+            '--coverage-path',
+            coverageFile.path,
+            '--min-coverage',
+            '50',
+          ],
+          executor: FakeCommandExecutor(const <StepResult>[]),
+          outputWriter: (String message) => buffer.writeln(message),
+        );
+
+        expect(buffer.toString(), isNot(contains('::warning')));
+        expect(buffer.toString(), isNot(contains('::error')));
+      },
+    );
   });
 }

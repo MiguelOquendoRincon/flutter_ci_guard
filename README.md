@@ -87,6 +87,7 @@ Supported keys in this release:
 - `coverage.exclude`
 - `coverage.per_file_min`
 - `coverage.show_top_low_files`
+- `output.github_annotations`
 
 You can also point to a custom config file:
 
@@ -206,6 +207,37 @@ Example JSON:
 }
 ```
 
+### GitHub Actions annotations
+
+You can optionally emit GitHub Actions workflow command annotations for
+low-coverage files. This makes coverage feedback visible in the Actions log and
+in the pull request UI without calling the GitHub API.
+
+```bash
+dart run flutter_ci_guard --github-annotations
+```
+
+You can also enable it from config:
+
+```yaml
+output:
+  github_annotations: true
+```
+
+Example annotation:
+
+```text
+::warning file=lib/auth/login_cubit.dart,line=1,title=Low coverage::Coverage is 54.00%, below required 70.00%
+```
+
+Notes:
+
+- Annotations reuse the existing per-file low coverage insights.
+- This works best when `coverage.per_file_min` is configured.
+- Annotation count follows `coverage.show_top_low_files` when set, or is capped
+  at 10 by default.
+- `--json` keeps stdout JSON-only and does not print annotations.
+
 ---
 
 ## ⚙️ Configuration Flags
@@ -216,6 +248,7 @@ Example JSON:
 | `--min-coverage` | `80` | Required percentage (0-100). |
 | `--coverage-path` | `coverage/lcov.info` | Path to the generated LCOV file. |
 | `--coverage-exclude` | - | Comma-separated glob patterns to exclude from coverage. |
+| `--github-annotations` | `false` | Print GitHub Actions low-coverage annotations to stdout. |
 | `--json` | `false` | Print only the final JSON report to stdout. |
 | `--json-output` | - | Write the final JSON report to a file. |
 | `--skip-format` | `false` | Skip `dart format` validation. |
@@ -258,8 +291,8 @@ package Admin settings for this repository and use the tag pattern
 Example release flow:
 
 ```bash
-git tag v0.3.0
-git push origin v0.3.0
+git tag v0.5.0
+git push origin v0.5.0
 ```
 
 The version in `pubspec.yaml` must match the tag version exactly.
